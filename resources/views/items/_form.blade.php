@@ -49,9 +49,19 @@
 
     @if (! $editing)
         <div class="field">
-            <label for="initial_stock">Stok awal</label>
-            <input class="input" id="initial_stock" name="initial_stock" type="number" min="0" value="{{ old('initial_stock', 0) }}" required>
-            <small>Jika lebih dari 0, sistem otomatis membuat mutasi stok masuk.</small>
+            <label for="initial_stock_good">Stok awal barang baik</label>
+            <input class="input" id="initial_stock_good" name="initial_stock_good" type="number" min="0" value="{{ old('initial_stock_good', 0) }}" required>
+        </div>
+
+        <div class="field">
+            <label for="initial_stock_less_good">Stok awal barang kurang baik</label>
+            <input class="input" id="initial_stock_less_good" name="initial_stock_less_good" type="number" min="0" value="{{ old('initial_stock_less_good', 0) }}" required>
+        </div>
+
+        <div class="field">
+            <label for="initial_stock_damaged">Stok awal barang rusak</label>
+            <input class="input" id="initial_stock_damaged" name="initial_stock_damaged" type="number" min="0" value="{{ old('initial_stock_damaged', 0) }}" required>
+            <small>Setiap stok awal otomatis tercatat sebagai mutasi masuk sesuai kondisi.</small>
         </div>
     @else
         <div class="field">
@@ -59,16 +69,22 @@
             <div class="input" style="display: flex; align-items: center;">{{ number_format($item->stock, 0, ',', '.') }} {{ $item->unit }}</div>
             <small>Perubahan stok dilakukan dari menu mutasi stok.</small>
         </div>
-    @endif
 
-    <div class="field">
-        <label for="condition_status">Kondisi barang</label>
-        <select class="select" id="condition_status" name="condition_status" required>
-            <option value="baik" @selected(old('condition_status', $item->condition_status ?? 'baik') === 'baik')>Baik</option>
-            <option value="perlu-perawatan" @selected(old('condition_status', $item->condition_status ?? '') === 'perlu-perawatan')>Perlu Perawatan</option>
-            <option value="rusak-ringan" @selected(old('condition_status', $item->condition_status ?? '') === 'rusak-ringan')>Rusak Ringan</option>
-        </select>
-    </div>
+        <div class="field">
+            <label>Barang baik</label>
+            <div class="input" style="display: flex; align-items: center;">{{ number_format($item->stock_good, 0, ',', '.') }} {{ $item->unit }}</div>
+        </div>
+
+        <div class="field">
+            <label>Barang kurang baik</label>
+            <div class="input" style="display: flex; align-items: center;">{{ number_format($item->stock_less_good, 0, ',', '.') }} {{ $item->unit }}</div>
+        </div>
+
+        <div class="field">
+            <label>Barang rusak</label>
+            <div class="input" style="display: flex; align-items: center;">{{ number_format($item->stock_damaged, 0, ',', '.') }} {{ $item->unit }}</div>
+        </div>
+    @endif
 
     <div class="field-wide">
         <label for="description">Deskripsi</label>

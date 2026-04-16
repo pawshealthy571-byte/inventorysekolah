@@ -36,6 +36,7 @@ class StockMovementController extends Controller
             'item_id' => ['required', 'exists:items,id'],
             'type' => ['required', Rule::in(['masuk', 'keluar'])],
             'quantity' => ['required', 'integer', 'min:1'],
+            'condition_bucket' => ['required', Rule::in(Item::conditionBuckets())],
             'reference' => ['nullable', 'string', 'max:255'],
             'actor' => ['nullable', 'string', 'max:255'],
             'moved_at' => ['required', 'date'],
@@ -46,6 +47,7 @@ class StockMovementController extends Controller
 
         try {
             $stockMovementService->record($item, $validated['type'], (int) $validated['quantity'], [
+                'condition_bucket' => $validated['condition_bucket'],
                 'reference' => $validated['reference'] ?? null,
                 'actor' => $validated['actor'] ?? null,
                 'note' => $validated['note'] ?? null,

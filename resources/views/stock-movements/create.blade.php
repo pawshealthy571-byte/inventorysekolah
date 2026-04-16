@@ -49,6 +49,15 @@
                     </div>
 
                     <div class="field">
+                        <label for="condition_bucket">Kondisi stok</label>
+                        <select class="select" id="condition_bucket" name="condition_bucket" required>
+                            <option value="baik" @selected(old('condition_bucket', 'baik') === 'baik')>Barang baik</option>
+                            <option value="kurang-baik" @selected(old('condition_bucket') === 'kurang-baik')>Barang kurang baik</option>
+                            <option value="rusak" @selected(old('condition_bucket') === 'rusak')>Barang rusak</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
                         <label for="reference">Referensi</label>
                         <input class="input" id="reference" name="reference" type="text" value="{{ old('reference') }}" placeholder="Contoh: PO-2026-ATK-01">
                     </div>
@@ -99,12 +108,24 @@
                         <div>{{ number_format($selectedItem->stock, 0, ',', '.') }} {{ $selectedItem->unit }}</div>
                     </div>
                     <div class="detail-row">
+                        <strong>Barang baik</strong>
+                        <div>{{ number_format($selectedItem->stock_good, 0, ',', '.') }} {{ $selectedItem->unit }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Kurang baik</strong>
+                        <div>{{ number_format($selectedItem->stock_less_good, 0, ',', '.') }} {{ $selectedItem->unit }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Rusak</strong>
+                        <div>{{ number_format($selectedItem->stock_damaged, 0, ',', '.') }} {{ $selectedItem->unit }}</div>
+                    </div>
+                    <div class="detail-row">
                         <strong>Batas minimum</strong>
                         <div>{{ number_format($selectedItem->minimum_stock, 0, ',', '.') }} {{ $selectedItem->unit }}</div>
                     </div>
                     <div class="detail-row">
-                        <strong>Kondisi</strong>
-                        <div>{{ $selectedItem->conditionLabel() }}</div>
+                        <strong>Rekomendasi beli</strong>
+                        <div>{{ number_format($selectedItem->recommendedPurchaseQuantityFor(), 0, ',', '.') }} {{ $selectedItem->unit }}</div>
                     </div>
                 </div>
 

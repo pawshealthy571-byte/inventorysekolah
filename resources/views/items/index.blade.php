@@ -108,7 +108,7 @@
                             <th>Kategori</th>
                             <th>Lokasi</th>
                             <th>Stok</th>
-                            <th>Kondisi</th>
+                            <th>Kondisi Stok</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -128,17 +128,27 @@
                                     <span class="badge {{ $item->isLowStock() ? 'badge-danger' : 'badge-accent' }}">
                                         {{ number_format($item->stock, 0, ',', '.') }} / min {{ number_format($item->minimum_stock, 0, ',', '.') }}
                                     </span>
+                                    @if ($item->pending_requests_count > 0)
+                                        <div class="meta">
+                                            <span>{{ number_format($item->pending_requests_count, 0, ',', '.') }} permintaan menunggu</span>
+                                        </div>
+                                    @endif
                                 </td>
                                 <td>
-                                    <span class="badge {{ $item->condition_status === 'baik' ? 'badge-accent' : ($item->condition_status === 'perlu-perawatan' ? 'badge-warning' : 'badge-danger') }}">
-                                        {{ $item->conditionLabel() }}
-                                    </span>
+                                    <div class="meta" style="margin-top: 0;">
+                                        @foreach ($item->stockBreakdown() as $breakdown)
+                                            <span class="badge {{ $breakdown['key'] === 'baik' ? 'badge-accent' : ($breakdown['key'] === 'kurang-baik' ? 'badge-warning' : 'badge-danger') }}">
+                                                {{ $breakdown['label'] }} {{ number_format($breakdown['stock'], 0, ',', '.') }}
+                                            </span>
+                                        @endforeach
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="inline-actions">
                                         <a class="button-secondary" href="{{ route('barang.show', $item) }}">Detail</a>
                                         <a class="button-ghost" href="{{ route('barang.edit', $item) }}">Edit</a>
                                         <a class="button-ghost" href="{{ route('stock-movements.create', ['item' => $item->id]) }}">Mutasi</a>
+                                        <a class="button-ghost" href="{{ route('permintaan-barang.create') }}">Permintaan</a>
                                     </div>
                                 </td>
                             </tr>

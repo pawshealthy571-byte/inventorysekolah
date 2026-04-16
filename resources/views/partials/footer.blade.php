@@ -2,10 +2,10 @@
     <div class="site-footer__inner panel">
         <div class="footer-block">
             <span class="footer-kicker">Gudang Sekolah</span>
-            <strong>Inventory workspace berbasis Blade.</strong>
+            <strong>Aplikasi inventaris berbasis Blade.</strong>
             <p>
                 Layout sekarang memakai partial Blade terpisah untuk `header`, `menu`, dan `footer`
-                supaya lebih gampang dirawat saat fitur inventaris bertambah.
+                supaya lebih gampang dirawat saat halaman inventaris bertambah.
             </p>
         </div>
 

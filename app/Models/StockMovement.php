@@ -19,6 +19,8 @@ class StockMovement extends Model
         'item_id',
         'type',
         'quantity',
+        'condition_bucket',
+        'balance_after',
         'reference',
         'actor',
         'note',
@@ -35,6 +37,7 @@ class StockMovement extends Model
         return [
             'item_id' => 'integer',
             'quantity' => 'integer',
+            'balance_after' => 'integer',
             'moved_at' => 'datetime',
         ];
     }
@@ -61,5 +64,13 @@ class StockMovement extends Model
     public function isIncoming(): bool
     {
         return $this->type === 'masuk';
+    }
+
+    /**
+     * Get the display label for the condition bucket.
+     */
+    public function conditionBucketLabel(): string
+    {
+        return Item::conditionLabelFor($this->condition_bucket);
     }
 }

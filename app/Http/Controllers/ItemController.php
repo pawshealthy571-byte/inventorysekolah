@@ -22,6 +22,9 @@ class ItemController extends Controller
 
         $items = Item::query()
             ->with(['category', 'location'])
+            ->withCount([
+                'itemRequests as pending_requests_count' => fn ($query) => $query->where('status', 'menunggu'),
+            ])
             ->when($filters['q'] ?? null, fn ($query, $term) => $query->search($term))
             ->when($filters['category'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
             ->when($filters['location'] ?? null, fn ($query, $locationId) => $query->where('storage_location_id', $locationId))
@@ -59,10 +62,17 @@ class ItemController extends Controller
             'storage_location_id' => ['nullable', 'exists:storage_locations,id'],
             'unit' => ['required', 'string', 'max:50'],
             'minimum_stock' => ['required', 'integer', 'min:0'],
-            'initial_stock' => ['required', 'integer', 'min:0'],
-            'condition_status' => ['required', Rule::in(['baik', 'perlu-perawatan', 'rusak-ringan'])],
+            'initial_stock_good' => ['required', 'integer', 'min:0'],
+            'initial_stock_less_good' => ['required', 'integer', 'min:0'],
+            'initial_stock_damaged' => ['required', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
         ]);
+
+        $initialStocks = [
+            'baik' => (int) $validated['initial_stock_good'],
+            'kurang-baik' => (int) $validated['initial_stock_less_good'],
+            'rusak' => (int) $validated['initial_stock_damaged'],
+        ];
 
         $item = Item::query()->create([
             'name' => $validated['name'],
@@ -72,12 +82,23 @@ class ItemController extends Controller
             'unit' => $validated['unit'],
             'minimum_stock' => $validated['minimum_stock'],
             'stock' => 0,
-            'condition_status' => $validated['condition_status'],
+            'stock_good' => 0,
+            'stock_less_good' => 0,
+            'stock_damaged' => 0,
+            'condition_status' => collect($initialStocks)
+                ->sortDesc()
+                ->keys()
+                ->first() ?? 'baik',
             'description' => $validated['description'] ?? null,
         ]);
 
-        if ($validated['initial_stock'] > 0) {
-            $stockMovementService->record($item, 'masuk', $validated['initial_stock'], [
+        foreach ($initialStocks as $condition => $quantity) {
+            if ($quantity < 1) {
+                continue;
+            }
+
+            $stockMovementService->record($item, 'masuk', $quantity, [
+                'condition_bucket' => $condition,
                 'reference' => 'STOK-AWAL',
                 'actor' => 'Pengaturan awal',
                 'note' => 'Stok awal saat data barang dibuat.',
@@ -103,9 +124,23 @@ class ItemController extends Controller
             ->limit(12)
             ->get();
 
+        $requests = $barang->itemRequests()
+            ->latest('requested_at')
+            ->latest('id')
+            ->limit(6)
+            ->get();
+
+        $purchases = $barang->purchases()
+            ->latest('purchased_at')
+            ->latest('id')
+            ->limit(6)
+            ->get();
+
         return view('items.show', [
             'item' => $barang,
             'movements' => $movements,
+            'requests' => $requests,
+            'purchases' => $purchases,
         ]);
     }
 
@@ -136,10 +171,10 @@ class ItemController extends Controller
             'storage_location_id' => ['nullable', 'exists:storage_locations,id'],
             'unit' => ['required', 'string', 'max:50'],
             'minimum_stock' => ['required', 'integer', 'min:0'],
-            'condition_status' => ['required', Rule::in(['baik', 'perlu-perawatan', 'rusak-ringan'])],
             'description' => ['nullable', 'string'],
         ]);
 
+        $validated['condition_status'] = $barang->dominantConditionStatus();
         $barang->update($validated);
 
         return redirect()

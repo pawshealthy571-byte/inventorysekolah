@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Item;
+use App\Models\ItemRequest;
+use App\Models\Purchase;
 use App\Models\StockMovement;
 use App\Models\StorageLocation;
 use Illuminate\Support\Facades\Schema;
@@ -18,40 +20,74 @@ class DashboardController extends Controller
     {
         if (! $this->inventoryTablesExist()) {
             return view('dashboard', [
-                'summary' => [
-                    'item_count' => 0,
-                    'category_count' => 0,
-                    'location_count' => 0,
-                    'total_stock' => 0,
-                    'low_stock_count' => 0,
-                    'incoming_this_month' => 0,
-                    'outgoing_this_month' => 0,
-                ],
+                'summary' => $this->emptySummary(),
                 'lowStockItems' => collect(),
-                'recentMovements' => collect(),
-                'categories' => collect(),
-                'locations' => collect(),
-                'conditionSummary' => collect([
-                    ['status' => 'baik', 'label' => 'Baik', 'count' => 0],
-                    ['status' => 'perlu-perawatan', 'label' => 'Perlu Perawatan', 'count' => 0],
-                    ['status' => 'rusak-ringan', 'label' => 'Rusak Ringan', 'count' => 0],
-                ]),
+                'conditionSummary' => $this->emptyConditionSummary(),
+                'pendingRequests' => collect(),
+                'recentPurchases' => collect(),
                 'setupRequired' => true,
             ]);
         }
 
-        $currentMonth = now();
-        $conditionCounts = Item::query()
-            ->selectRaw('condition_status, count(*) as total')
-            ->groupBy('condition_status')
-            ->pluck('total', 'condition_status');
+        return view('dashboard', [
+            'summary' => $this->summary(),
+            'lowStockItems' => $this->lowStockItems(4),
+            'conditionSummary' => $this->conditionSummary(),
+            'pendingRequests' => $this->pendingRequests(4),
+            'recentPurchases' => $this->recentPurchases(4),
+            'setupRequired' => false,
+        ]);
+    }
 
-        $summary = [
+    /**
+     * Display detailed operational inventory information.
+     */
+    public function operational(): View
+    {
+        if (! $this->inventoryTablesExist()) {
+            return view('dashboard.operasional', [
+                'summary' => $this->emptySummary(),
+                'lowStockItems' => collect(),
+                'recentMovements' => collect(),
+                'recentRequests' => collect(),
+                'recentPurchases' => collect(),
+                'categories' => collect(),
+                'locations' => collect(),
+                'conditionSummary' => $this->emptyConditionSummary(),
+                'setupRequired' => true,
+            ]);
+        }
+
+        return view('dashboard.operasional', [
+            'summary' => $this->summary(),
+            'lowStockItems' => $this->lowStockItems(),
+            'recentMovements' => $this->recentMovements(),
+            'recentRequests' => $this->recentRequests(),
+            'recentPurchases' => $this->recentPurchases(),
+            'categories' => $this->categories(),
+            'locations' => $this->locations(),
+            'conditionSummary' => $this->conditionSummary(),
+            'setupRequired' => false,
+        ]);
+    }
+
+    /**
+     * Build the summary data used across dashboard pages.
+     */
+    private function summary(): array
+    {
+        $currentMonth = now();
+
+        return [
             'item_count' => Item::query()->count(),
             'category_count' => Category::query()->count(),
             'location_count' => StorageLocation::query()->count(),
             'total_stock' => Item::query()->sum('stock'),
             'low_stock_count' => Item::query()->lowStock()->count(),
+            'pending_request_count' => ItemRequest::query()->where('status', 'menunggu')->count(),
+            'purchase_total_this_month' => (float) Purchase::query()
+                ->whereBetween('purchased_at', [$currentMonth->copy()->startOfMonth(), $currentMonth->copy()->endOfMonth()])
+                ->sum('total_cost'),
             'incoming_this_month' => StockMovement::query()
                 ->where('type', 'masuk')
                 ->whereBetween('moved_at', [$currentMonth->copy()->startOfMonth(), $currentMonth->copy()->endOfMonth()])
@@ -61,58 +97,167 @@ class DashboardController extends Controller
                 ->whereBetween('moved_at', [$currentMonth->copy()->startOfMonth(), $currentMonth->copy()->endOfMonth()])
                 ->sum('quantity'),
         ];
+    }
 
-        $lowStockItems = Item::query()
+    /**
+     * Build an empty summary for environments without inventory tables.
+     */
+    private function emptySummary(): array
+    {
+        return [
+            'item_count' => 0,
+            'category_count' => 0,
+            'location_count' => 0,
+            'total_stock' => 0,
+            'low_stock_count' => 0,
+            'pending_request_count' => 0,
+            'purchase_total_this_month' => 0,
+            'incoming_this_month' => 0,
+            'outgoing_this_month' => 0,
+        ];
+    }
+
+    /**
+     * Get low stock items ordered by urgency.
+     */
+    private function lowStockItems(int $limit = 6)
+    {
+        return Item::query()
             ->with(['category', 'location'])
             ->lowStock()
             ->orderBy('stock')
             ->orderBy('name')
-            ->limit(6)
+            ->limit($limit)
             ->get();
+    }
 
-        $recentMovements = StockMovement::query()
+    /**
+     * Get recent stock movements.
+     */
+    private function recentMovements()
+    {
+        return StockMovement::query()
             ->with('item')
             ->latest('moved_at')
             ->latest('id')
             ->limit(8)
             ->get();
+    }
 
-        $categories = Category::query()
+    /**
+     * Get recent item requests.
+     */
+    private function recentRequests(int $limit = 6)
+    {
+        return ItemRequest::query()
+            ->with('item')
+            ->latest('requested_at')
+            ->latest('id')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get the pending item requests.
+     */
+    private function pendingRequests(int $limit = 6)
+    {
+        return ItemRequest::query()
+            ->with('item')
+            ->where('status', 'menunggu')
+            ->latest('requested_at')
+            ->latest('id')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get recent purchase transactions.
+     */
+    private function recentPurchases(int $limit = 6)
+    {
+        return Purchase::query()
+            ->with('item')
+            ->latest('purchased_at')
+            ->latest('id')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get the busiest categories.
+     */
+    private function categories()
+    {
+        return Category::query()
             ->withCount('items')
             ->withSum('items as stock_total', 'stock')
             ->orderByDesc('items_count')
             ->orderBy('name')
             ->limit(6)
             ->get();
+    }
 
-        $locations = StorageLocation::query()
+    /**
+     * Get the busiest storage locations.
+     */
+    private function locations()
+    {
+        return StorageLocation::query()
             ->withCount('items')
             ->withSum('items as stock_total', 'stock')
             ->orderByDesc('items_count')
             ->orderBy('name')
             ->limit(6)
             ->get();
+    }
 
-        $conditionSummary = collect([
-            'baik',
-            'perlu-perawatan',
-            'rusak-ringan',
-        ])->map(fn (string $status): array => [
+    /**
+     * Build the condition summary for dashboard pages.
+     */
+    private function conditionSummary()
+    {
+        return collect([
+            [
+                'status' => 'baik',
+                'label' => $this->conditionLabel('baik'),
+                'count' => (int) Item::query()->sum('stock_good'),
+            ],
+            [
+                'status' => 'kurang-baik',
+                'label' => $this->conditionLabel('kurang-baik'),
+                'count' => (int) Item::query()->sum('stock_less_good'),
+            ],
+            [
+                'status' => 'rusak',
+                'label' => $this->conditionLabel('rusak'),
+                'count' => (int) Item::query()->sum('stock_damaged'),
+            ],
+        ]);
+    }
+
+    /**
+     * Build the empty condition summary fallback.
+     */
+    private function emptyConditionSummary()
+    {
+        return collect($this->conditionStatuses())->map(fn (string $status): array => [
             'status' => $status,
             'label' => $this->conditionLabel($status),
-            'count' => (int) ($conditionCounts[$status] ?? 0),
+            'count' => 0,
         ]);
-        $setupRequired = false;
+    }
 
-        return view('dashboard', compact(
-            'summary',
-            'lowStockItems',
-            'recentMovements',
-            'categories',
-            'locations',
-            'conditionSummary',
-            'setupRequired',
-        ));
+    /**
+     * Supported inventory condition statuses.
+     */
+    private function conditionStatuses(): array
+    {
+        return [
+            'baik',
+            'kurang-baik',
+            'rusak',
+        ];
     }
 
     /**
@@ -122,8 +267,8 @@ class DashboardController extends Controller
     {
         return match ($status) {
             'baik' => 'Baik',
-            'perlu-perawatan' => 'Perlu Perawatan',
-            'rusak-ringan' => 'Rusak Ringan',
+            'kurang-baik' => 'Kurang Baik',
+            'rusak' => 'Rusak',
             default => ucfirst(str_replace('-', ' ', $status)),
         };
     }
@@ -133,7 +278,7 @@ class DashboardController extends Controller
      */
     private function inventoryTablesExist(): bool
     {
-        foreach (['categories', 'storage_locations', 'items', 'stock_movements'] as $table) {
+        foreach (['categories', 'storage_locations', 'items', 'stock_movements', 'item_requests', 'purchases'] as $table) {
             if (! Schema::hasTable($table)) {
                 return false;
             }

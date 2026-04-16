@@ -1,13 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Gudang Sekolah')
-@section('eyebrow', 'Ringkasan Operasional Gudang')
-@section('page_title', 'Dashboard Gudang Sekolah')
-@section('page_subtitle', 'Pantau stok, mutasi barang, dan titik rawan inventaris dalam satu layar tanpa dependensi UI tambahan.')
+@section('title', 'Dashboard - Sekolah Permata Harapan')
+@section('eyebrow', 'Ringkasan Inventaris')
+@section('page_title', 'Dashboard')
+@section('page_subtitle', 'Ringkasan operasional inventaris dan status stok terbaru.')
 
 @section('page_actions')
-    <a class="button-secondary" href="{{ route('barang.index') }}">Lihat Barang</a>
-    <a class="button" href="{{ route('stock-movements.create') }}">Catat Mutasi</a>
+    <a class="btn btn-secondary" href="{{ route('dashboard.operational') }}">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        Operasional
+    </a>
+    <a class="btn btn-primary" href="{{ route('stock-movements.create') }}">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        Catat Mutasi
+    </a>
 @endsection
 
 @section('content')
@@ -15,255 +21,198 @@
         $netMovement = $summary['incoming_this_month'] - $summary['outgoing_this_month'];
         $safeItems = max($summary['item_count'] - $summary['low_stock_count'], 0);
         $safeRate = $summary['item_count'] > 0 ? round(($safeItems / $summary['item_count']) * 100) : 0;
-        $maxCategoryItems = max((int) ($categories->max('items_count') ?? 1), 1);
-        $maxLocationItems = max((int) ($locations->max('items_count') ?? 1), 1);
     @endphp
 
     @if ($setupRequired ?? false)
-        <section class="panel section-card notice-box">
-            <div class="section-header">
-                <div>
-                    <div class="muted">Setup database diperlukan</div>
-                    <h3 class="section-title">Tabel inventaris belum tersedia</h3>
-                </div>
-                <span class="badge badge-warning">Perlu migrate</span>
-            </div>
-            <p class="muted">
-                Dashboard berhasil dibuka, tetapi tabel `categories`, `storage_locations`, `items`,
-                atau `stock_movements` belum ada di database aktif. Jalankan migrasi lalu seed data contoh
-                bila diperlukan.
-            </p>
-            <div class="code-block">php artisan migrate --seed</div>
-        </section>
+        <div class="notice-box fade-in-up" style="margin-bottom: 24px;">
+            <strong>Tabel inventaris belum tersedia</strong>
+            <p>Dashboard sudah siap dipakai, tetapi data inventaris di sistem ini masih kosong atau belum lengkap. Jalankan <code>php artisan migrate --seed</code> untuk menyiapkan data awal.</p>
+        </div>
     @endif
 
-    <section class="panel section-card" style="margin-bottom: 18px;">
-        <div class="dashboard-grid">
-            <div>
-                <span class="eyebrow">Kesehatan Inventaris</span>
-                <h3 class="section-title" style="margin-top: 18px; font-size: clamp(2rem, 4vw, 3.3rem);">Stok terpantau dengan prioritas yang jelas.</h3>
-                <p class="page-copy" style="margin-top: 16px;">
-                    Ringkasan ini memakai data kategori, lokasi, barang, dan mutasi stok yang tersimpan di sistem.
-                    Fokus utamanya adalah area yang butuh tindakan cepat dan volume perpindahan barang bulan berjalan.
-                </p>
+    <!-- Summary Stats Cards -->
+    <div class="stats-container fade-in-up delay-1">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
             </div>
-
-            <div class="grid-2">
-                <article class="summary-card">
-                    <span class="muted">Kesehatan stok aktif</span>
-                    <strong>{{ $safeRate }}%</strong>
-                    <p>{{ $safeItems }} dari {{ $summary['item_count'] }} barang masih berada di atas batas minimum.</p>
-                </article>
-                <article class="summary-card">
-                    <span class="muted">Neraca mutasi bulan ini</span>
-                    <strong>{{ $netMovement >= 0 ? '+' : '' }}{{ number_format($netMovement, 0, ',', '.') }}</strong>
-                    <p>Per hari {{ now()->format('d/m/Y') }}.</p>
-                </article>
-            </div>
+            <div class="stat-label">Total Stok</div>
+            <div class="stat-value">{{ number_format($summary['total_stock'], 0, ',', '.') }}</div>
+            <div class="stat-desc">Akumulasi seluruh unit aktif.</div>
         </div>
-    </section>
-
-    <section class="stats-grid" style="margin-bottom: 18px;">
-        <article class="panel stat-card">
-            <span class="muted">Total stok tersedia</span>
-            <strong>{{ number_format($summary['total_stock'], 0, ',', '.') }}</strong>
-            <p>Akumulasi seluruh unit barang aktif.</p>
-        </article>
-        <article class="panel stat-card">
-            <span class="muted">Data barang</span>
-            <strong>{{ number_format($summary['item_count'], 0, ',', '.') }}</strong>
-            <p>{{ number_format($summary['category_count'], 0, ',', '.') }} kategori dan {{ number_format($summary['location_count'], 0, ',', '.') }} lokasi.</p>
-        </article>
-        <article class="panel stat-card">
-            <span class="muted">Stok menipis</span>
-            <strong>{{ number_format($summary['low_stock_count'], 0, ',', '.') }}</strong>
-            <p>Barang yang sudah menyentuh batas minimum.</p>
-        </article>
-        <article class="panel stat-card">
-            <span class="muted">Mutasi bulan ini</span>
-            <strong>{{ number_format($summary['incoming_this_month'] + $summary['outgoing_this_month'], 0, ',', '.') }}</strong>
-            <p>{{ number_format($summary['incoming_this_month'], 0, ',', '.') }} masuk dan {{ number_format($summary['outgoing_this_month'], 0, ',', '.') }} keluar.</p>
-        </article>
-    </section>
-
-    <section class="dashboard-grid" style="margin-bottom: 18px;">
-        <article class="panel section-card">
-            <div class="section-header">
-                <div>
-                    <div class="muted">Prioritas tindak lanjut</div>
-                    <h3 class="section-title">Barang Dengan Stok Menipis</h3>
-                </div>
-                <span class="badge badge-danger">{{ number_format($summary['low_stock_count'], 0, ',', '.') }} item</span>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
             </div>
+            <div class="stat-label">Jenis Barang</div>
+            <div class="stat-value">{{ number_format($summary['item_count'], 0, ',', '.') }}</div>
+            <div class="stat-desc">{{ number_format($summary['category_count'], 0, ',', '.') }} kategori & {{ number_format($summary['location_count'], 0, ',', '.') }} lokasi.</div>
+        </div>
 
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <div class="stat-label">Stok Menipis</div>
+            <div class="stat-value" style="color: var(--warning-text);">{{ number_format($summary['low_stock_count'], 0, ',', '.') }}</div>
+            <div class="stat-desc">Barang mencapai batas minimum.</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="color: var(--success); background: var(--success-soft); border-color: rgba(16, 185, 129, 0.2);">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+            </div>
+            <div class="stat-label">Permintaan Menunggu</div>
+            <div class="stat-value">{{ number_format($summary['pending_request_count'], 0, ',', '.') }}</div>
+            <div class="stat-desc">Pengajuan barang yang belum diproses.</div>
+        </div>
+    </div>
+
+    <!-- Item Table with Low-Stock Badges -->
+    <div class="table-panel fade-in-up delay-2">
+        <div class="table-panel-header">
+            <div>
+                <h3 class="panel-title">Barang Perlu Restok</h3>
+                <p class="panel-subtitle">Prioritas tindak lanjut untuk menjaga ketersediaan barang.</p>
+            </div>
+            @if (!$lowStockItems->isEmpty())
+                <a class="btn btn-secondary" href="{{ route('barang.index', ['status' => 'menipis']) }}" style="padding: 8px 16px; font-size: 0.85rem;">
+                    Lihat Semua
+                </a>
+            @endif
+        </div>
+
+        <div class="table-wrapper">
             @if ($lowStockItems->isEmpty())
-                <div class="empty-state">Belum ada barang yang masuk kategori stok menipis.</div>
+                <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:48px;height:48px;opacity:0.5;margin-bottom:12px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p>Semua barang dalam kondisi stok aman.</p>
+                </div>
             @else
-                <div class="data-list">
-                    @foreach ($lowStockItems as $item)
-                        <div class="data-item">
-                            <div class="list-top">
-                                <div>
-                                    <strong>{{ $item->name }}</strong>
-                                    <div class="meta">
-                                        <span>SKU {{ $item->sku }}</span>
-                                        <span>{{ $item->category?->name ?? 'Tanpa kategori' }}</span>
-                                        <span>{{ $item->location?->name ?? 'Lokasi belum diatur' }}</span>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nama Barang</th>
+                            <th>Kategori & Lokasi</th>
+                            <th>Status Stok</th>
+                            <th style="text-align: right;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($lowStockItems as $item)
+                        <tr>
+                            <td>
+                                <div class="item-cell">
+                                    <div class="item-icon">
+                                        {{ substr($item->name, 0, 1) }}
+                                    </div>
+                                    <div class="item-info">
+                                        <strong>{{ $item->name }}</strong>
+                                        <span>SKU: {{ $item->sku ?? '-' }}</span>
                                     </div>
                                 </div>
-                                <span class="badge badge-danger">{{ number_format($item->stock, 0, ',', '.') }} / min {{ number_format($item->minimum_stock, 0, ',', '.') }}</span>
-                            </div>
-                            <div class="inline-actions" style="margin-top: 12px;">
-                                <a class="button-secondary" href="{{ route('barang.show', $item) }}">Detail</a>
-                                <a class="button-ghost" href="{{ route('stock-movements.create', ['item' => $item->id]) }}">Mutasi</a>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
+                            </td>
+                            <td>
+                                <div style="color: var(--text-main); font-weight: 500;">
+                                    {{ $item->category?->name ?? 'Tanpa kategori' }}
+                                </div>
+                                <div style="color: var(--text-muted); font-size: 0.85rem;">
+                                    {{ $item->location?->name ?? 'Lokasi belum diatur' }}
+                                </div>
+                            </td>
+                            <td>
+                                <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                                    <span class="badge badge-danger">Sisa: {{ number_format($item->stock, 0, ',', '.') }}</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Min: {{ number_format($item->minimum_stock, 0, ',', '.') }}</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Rekomendasi beli: {{ number_format($item->recommendedPurchaseQuantityFor(), 0, ',', '.') }}</span>
+                                </div>
+                            </td>
+                            <td style="text-align: right;">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    <a class="btn btn-secondary" href="{{ route('barang.show', $item) ?? '#' }}" style="padding: 6px 14px; font-size: 0.85rem;">Detail</a>
+                                    <a class="btn btn-primary" href="{{ route('pembelian-barang.create') ?? '#' }}" style="padding: 6px 14px; font-size: 0.85rem;">Restok</a>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             @endif
-        </article>
+        </div>
+    </div>
 
+    <section class="dashboard-grid fade-in-up delay-2" style="margin-top: 24px;">
         <article class="panel section-card">
             <div class="section-header">
                 <div>
-                    <div class="muted">Aktivitas terbaru</div>
-                    <h3 class="section-title">Mutasi Stok Terbaru</h3>
+                    <div class="muted">Permintaan barang</div>
+                    <h3 class="section-title">Menunggu Review</h3>
                 </div>
-                <span class="badge badge-accent">{{ number_format($recentMovements->count(), 0, ',', '.') }} catatan</span>
+                <a class="button-secondary" href="{{ route('permintaan-barang.index') }}">Kelola</a>
             </div>
 
-            @if ($recentMovements->isEmpty())
-                <div class="empty-state">Belum ada mutasi stok yang tercatat.</div>
+            @if ($pendingRequests->isEmpty())
+                <div class="empty-state">Tidak ada permintaan yang sedang menunggu.</div>
             @else
                 <div class="movement-list">
-                    @foreach ($recentMovements as $movement)
+                    @foreach ($pendingRequests as $requestItem)
                         <article class="movement-item">
                             <div class="list-top">
                                 <div>
-                                    <strong>{{ $movement->item?->name ?? 'Barang tidak ditemukan' }}</strong>
+                                    <strong>{{ $requestItem->item?->name ?? 'Barang tidak ditemukan' }}</strong>
                                     <div class="meta">
-                                        <span>{{ $movement->typeLabel() }}</span>
-                                        <span>{{ $movement->moved_at->format('d/m/Y H:i') }}</span>
-                                        @if ($movement->actor)
-                                            <span>{{ $movement->actor }}</span>
-                                        @endif
+                                        <span>{{ $requestItem->requester_name }}</span>
+                                        <span>{{ $requestItem->requested_at->format('d/m/Y H:i') }}</span>
                                     </div>
                                 </div>
-                                <span class="badge {{ $movement->isIncoming() ? 'badge-accent' : 'badge-warning' }}">
-                                    {{ $movement->isIncoming() ? '+' : '-' }}{{ number_format($movement->quantity, 0, ',', '.') }}
-                                </span>
+                                <span class="badge badge-warning">{{ number_format($requestItem->quantity_requested, 0, ',', '.') }}</span>
                             </div>
-                            @if ($movement->reference || $movement->note)
-                                <div class="meta">
-                                    @if ($movement->reference)
-                                        <span>Ref {{ $movement->reference }}</span>
-                                    @endif
-                                    @if ($movement->note)
-                                        <span>{{ $movement->note }}</span>
-                                    @endif
-                                </div>
-                            @endif
+                            <p class="muted" style="margin: 12px 0 0;">
+                                @if ($requestItem->recommended_purchase_quantity > 0)
+                                    Rekomendasi pembelian {{ number_format($requestItem->recommended_purchase_quantity, 0, ',', '.') }} unit.
+                                @else
+                                    Stok masih cukup untuk diproses.
+                                @endif
+                            </p>
                         </article>
                     @endforeach
                 </div>
             @endif
         </article>
-    </section>
 
-    <section class="grid-3">
         <article class="panel section-card">
             <div class="section-header">
                 <div>
-                    <div class="muted">Sebaran data</div>
-                    <h3 class="section-title">Kategori Terpadat</h3>
+                    <div class="muted">Pembelian terbaru</div>
+                    <h3 class="section-title">Restok Terakhir</h3>
                 </div>
+                <a class="button-secondary" href="{{ route('pembelian-barang.index') }}">Lihat Semua</a>
             </div>
 
-            @if ($categories->isEmpty())
-                <div class="empty-state">Kategori belum tersedia.</div>
+            @if ($recentPurchases->isEmpty())
+                <div class="empty-state">Belum ada pembelian yang tercatat.</div>
             @else
-                <div class="stack-list">
-                    @foreach ($categories as $category)
-                        <div class="stack-item">
+                <div class="movement-list">
+                    @foreach ($recentPurchases as $purchase)
+                        <article class="movement-item">
                             <div class="list-top">
-                                <strong>{{ $category->name }}</strong>
-                                <span class="muted">{{ number_format($category->items_count, 0, ',', '.') }} barang</span>
+                                <div>
+                                    <strong>{{ $purchase->item?->name ?? 'Barang tidak ditemukan' }}</strong>
+                                    <div class="meta">
+                                        <span>{{ $purchase->store_name }}</span>
+                                        <span>{{ $purchase->purchased_at->format('d/m/Y H:i') }}</span>
+                                    </div>
+                                </div>
+                                <span class="badge badge-accent">Rp{{ number_format((float) $purchase->total_cost, 0, ',', '.') }}</span>
                             </div>
-                            <div class="bar">
-                                <span style="width: {{ max((int) round(($category->items_count / $maxCategoryItems) * 100), 8) }}%"></span>
-                            </div>
-                            <div class="meta">
-                                <span>Total stok {{ number_format((int) ($category->stock_total ?? 0), 0, ',', '.') }}</span>
-                                @if ($category->description)
-                                    <span>{{ $category->description }}</span>
-                                @endif
-                            </div>
-                        </div>
+                            <p class="muted" style="margin: 12px 0 0;">
+                                {{ number_format($purchase->quantity_purchased, 0, ',', '.') }} unit masuk ke stok barang baik.
+                            </p>
+                        </article>
                     @endforeach
                 </div>
             @endif
-        </article>
-
-        <article class="panel section-card">
-            <div class="section-header">
-                <div>
-                    <div class="muted">Kapasitas penyimpanan</div>
-                    <h3 class="section-title">Lokasi Tersibuk</h3>
-                </div>
-            </div>
-
-            @if ($locations->isEmpty())
-                <div class="empty-state">Lokasi penyimpanan belum tersedia.</div>
-            @else
-                <div class="stack-list">
-                    @foreach ($locations as $location)
-                        <div class="stack-item">
-                            <div class="list-top">
-                                <strong>{{ $location->name }}</strong>
-                                <span class="muted">{{ number_format($location->items_count, 0, ',', '.') }} barang</span>
-                            </div>
-                            <div class="bar">
-                                <span style="width: {{ max((int) round(($location->items_count / $maxLocationItems) * 100), 8) }}%"></span>
-                            </div>
-                            <div class="meta">
-                                <span>Kode {{ $location->code }}</span>
-                                <span>Total stok {{ number_format((int) ($location->stock_total ?? 0), 0, ',', '.') }}</span>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </article>
-
-        <article class="panel section-card">
-            <div class="section-header">
-                <div>
-                    <div class="muted">Kondisi inventaris</div>
-                    <h3 class="section-title">Status Barang</h3>
-                </div>
-            </div>
-
-            <div class="stack-list">
-                @foreach ($conditionSummary as $condition)
-                    <div class="stack-item">
-                        <div class="list-top">
-                            <strong>{{ $condition['label'] }}</strong>
-                            <span class="badge {{ $condition['status'] === 'baik' ? 'badge-accent' : ($condition['status'] === 'perlu-perawatan' ? 'badge-warning' : 'badge-danger') }}">
-                                {{ number_format($condition['count'], 0, ',', '.') }}
-                            </span>
-                        </div>
-                        <p class="muted" style="margin: 12px 0 0;">
-                            @if ($condition['status'] === 'baik')
-                                Inventaris siap dipakai tanpa catatan perawatan khusus.
-                            @elseif ($condition['status'] === 'perlu-perawatan')
-                                Perlu dicek agar tidak mengganggu operasional harian.
-                            @else
-                                Prioritaskan evaluasi fisik dan rencana penggantian.
-                            @endif
-                        </p>
-                    </div>
-                @endforeach
-            </div>
         </article>
     </section>
 @endsection

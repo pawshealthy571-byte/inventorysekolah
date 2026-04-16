@@ -24,6 +24,9 @@ class Item extends Model
         'name',
         'unit',
         'stock',
+        'stock_good',
+        'stock_less_good',
+        'stock_damaged',
         'minimum_stock',
         'condition_status',
         'description',
@@ -40,6 +43,9 @@ class Item extends Model
             'category_id' => 'integer',
             'storage_location_id' => 'integer',
             'stock' => 'integer',
+            'stock_good' => 'integer',
+            'stock_less_good' => 'integer',
+            'stock_damaged' => 'integer',
             'minimum_stock' => 'integer',
         ];
     }
@@ -66,6 +72,22 @@ class Item extends Model
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
+    }
+
+    /**
+     * Get the requests for the item.
+     */
+    public function itemRequests(): HasMany
+    {
+        return $this->hasMany(ItemRequest::class);
+    }
+
+    /**
+     * Get the purchases for the item.
+     */
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(Purchase::class);
     }
 
     /**
@@ -97,15 +119,125 @@ class Item extends Model
     }
 
     /**
+     * Get the usable stock that can still be distributed.
+     */
+    public function usableStock(): int
+    {
+        return $this->stock_good + $this->stock_less_good;
+    }
+
+    /**
+     * Get the stock for a specific condition bucket.
+     */
+    public function stockForCondition(string $condition): int
+    {
+        $column = self::conditionColumn($condition);
+
+        return (int) $this->{$column};
+    }
+
+    /**
+     * Get the stock grouped by item condition.
+     *
+     * @return array<int, array{key: string, label: string, stock: int}>
+     */
+    public function stockBreakdown(): array
+    {
+        return collect(self::conditionBuckets())
+            ->map(fn (string $condition): array => [
+                'key' => $condition,
+                'label' => self::conditionLabelFor($condition),
+                'stock' => $this->stockForCondition($condition),
+            ])
+            ->all();
+    }
+
+    /**
+     * Suggest how many units should be purchased.
+     */
+    public function recommendedPurchaseQuantityFor(int $requestedQuantity = 0): int
+    {
+        $usableStock = $this->usableStock();
+        $shortage = max($requestedQuantity - $usableStock, 0);
+        $minimumGap = max($this->minimum_stock - $usableStock, 0);
+
+        return max($shortage, $minimumGap);
+    }
+
+    /**
+     * Get the dominant item condition based on current stock buckets.
+     */
+    public function dominantConditionStatus(): string
+    {
+        $stocks = [
+            'baik' => $this->stock_good,
+            'kurang-baik' => $this->stock_less_good,
+            'rusak' => $this->stock_damaged,
+        ];
+
+        $highestStock = max($stocks);
+
+        if ($highestStock === 0) {
+            return self::normalizeConditionStatus($this->condition_status);
+        }
+
+        return (string) collect($stocks)
+            ->sortDesc()
+            ->keys()
+            ->first();
+    }
+
+    /**
      * Get the label for the condition status.
      */
     public function conditionLabel(): string
     {
-        return match ($this->condition_status) {
-            'baik' => 'Baik',
-            'perlu-perawatan' => 'Perlu Perawatan',
-            'rusak-ringan' => 'Rusak Ringan',
-            default => ucfirst(str_replace('-', ' ', $this->condition_status)),
+        return self::conditionLabelFor($this->dominantConditionStatus());
+    }
+
+    /**
+     * Normalize legacy condition values.
+     */
+    public static function normalizeConditionStatus(?string $status): string
+    {
+        return match ($status) {
+            'perlu-perawatan', 'kurang-baik' => 'kurang-baik',
+            'rusak-ringan', 'rusak' => 'rusak',
+            default => 'baik',
+        };
+    }
+
+    /**
+     * Get the item condition buckets.
+     *
+     * @return list<string>
+     */
+    public static function conditionBuckets(): array
+    {
+        return ['baik', 'kurang-baik', 'rusak'];
+    }
+
+    /**
+     * Get the storage column for a condition bucket.
+     */
+    public static function conditionColumn(string $condition): string
+    {
+        return match (self::normalizeConditionStatus($condition)) {
+            'kurang-baik' => 'stock_less_good',
+            'rusak' => 'stock_damaged',
+            default => 'stock_good',
+        };
+    }
+
+    /**
+     * Get the display label for a condition bucket.
+     */
+    public static function conditionLabelFor(string $condition): string
+    {
+        return match (self::normalizeConditionStatus($condition)) {
+            'kurang-baik' => 'Kurang Baik',
+            'rusak' => 'Rusak',
+            default => 'Baik',
         };
     }
 }
