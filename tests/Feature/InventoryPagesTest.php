@@ -198,6 +198,43 @@ class InventoryPagesTest extends TestCase
         ]);
     }
 
+    public function test_user_can_create_item_from_assistant_chat(): void
+    {
+        $this->seed(InventorySeeder::class);
+        $user = User::factory()->create();
+
+        $category = Category::query()->firstOrFail();
+        $location = StorageLocation::query()->firstOrFail();
+
+        $response = $this->actingAs($user)->postJson(route('ai.barang-chat'), [
+            'message' => sprintf(
+                'Tambah barang Spidol AI kategori %s lokasi %s satuan pcs minimum stok 3 stok baik 15 deskripsi Untuk kebutuhan presentasi',
+                $category->name,
+                $location->name,
+            ),
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'message' => 'Barang Spidol AI berhasil ditambahkan ke database.',
+            ]);
+
+        $item = Item::query()->where('name', 'Spidol AI')->firstOrFail();
+
+        $this->assertSame($category->id, $item->category_id);
+        $this->assertSame($location->id, $item->storage_location_id);
+        $this->assertSame(15, $item->stock);
+        $this->assertSame('pcs', $item->unit);
+        $this->assertDatabaseHas('stock_movements', [
+            'item_id' => $item->id,
+            'type' => 'masuk',
+            'quantity' => 15,
+            'condition_bucket' => 'baik',
+            'reference' => 'STOK-AWAL',
+        ]);
+    }
+
     public function test_guest_cannot_access_inventory_pages(): void
     {
         $this->seed(InventorySeeder::class);

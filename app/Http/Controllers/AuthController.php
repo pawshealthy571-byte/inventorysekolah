@@ -37,7 +37,7 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return redirect()
-            ->intended(route('dashboard'))
+            ->intended(route($request->user()->accessibleHomeRoute()))
             ->with('status', 'Selamat datang kembali.');
     }
 
@@ -71,7 +71,7 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return redirect()
-            ->route('dashboard')
+            ->route($user->accessibleHomeRoute())
             ->with('status', 'Akun berhasil dibuat.');
     }
 

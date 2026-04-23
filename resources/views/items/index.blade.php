@@ -6,7 +6,6 @@
 @section('page_subtitle', 'Filter inventaris berdasarkan nama, kategori, lokasi, dan status stok untuk melihat kondisi gudang dengan cepat.')
 
 @section('page_actions')
-    <a class="button-secondary" href="{{ route('dashboard') }}">Kembali ke Dashboard</a>
     <a class="button" href="{{ route('barang.create') }}">Tambah Barang</a>
 @endsection
 
@@ -146,9 +145,6 @@
                                 <td>
                                     <div class="inline-actions">
                                         <a class="button-secondary" href="{{ route('barang.show', $item) }}">Detail</a>
-                                        <a class="button-ghost" href="{{ route('barang.edit', $item) }}">Edit</a>
-                                        <a class="button-ghost" href="{{ route('stock-movements.create', ['item' => $item->id]) }}">Mutasi</a>
-                                        <a class="button-ghost" href="{{ route('permintaan-barang.create') }}">Permintaan</a>
                                     </div>
                                 </td>
                             </tr>

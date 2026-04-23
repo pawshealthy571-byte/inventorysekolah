@@ -6,10 +6,6 @@
 @section('page_subtitle', 'Ringkasan operasional inventaris dan status stok terbaru.')
 
 @section('page_actions')
-    <a class="btn btn-secondary" href="{{ route('dashboard.operational') }}">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-        Operasional
-    </a>
     <a class="btn btn-primary" href="{{ route('stock-movements.create') }}">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         Catat Mutasi

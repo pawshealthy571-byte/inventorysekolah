@@ -3,16 +3,19 @@
 @section('title', $item->name)
 @section('eyebrow', 'Detail Inventaris')
 @section('page_title', $item->name)
-@section('page_subtitle', 'Cek identitas barang, status stok, lokasi simpan, dan riwayat mutasi terakhir dari satu halaman.')
+@section('page_subtitle', 'Lihat ringkasan barang lalu gunakan aksi utama yang memang dibutuhkan.')
 
 @section('page_actions')
-    <a class="button-secondary" href="{{ route('barang.edit', $item) }}">Edit Barang</a>
-    <a class="button-secondary" href="{{ route('permintaan-barang.create') }}">Buat Permintaan</a>
-    <a class="button-secondary" href="{{ route('pembelian-barang.create') }}">Catat Pembelian</a>
-    <a class="button" href="{{ route('stock-movements.create', ['item' => $item->id]) }}">Tambah Mutasi</a>
+    <a class="button-secondary" href="{{ route('barang.index') }}">Kembali ke Daftar</a>
+    <a class="button" href="{{ route('stock-movements.create', ['item' => $item->id]) }}">Catat Mutasi</a>
 @endsection
 
 @section('content')
+    <section class="notice-box" style="margin-bottom: 18px;">
+        <strong>Alur sederhana</strong>
+        <p style="margin: 8px 0 0;">1. Cek stok barang. 2. Jika ada perubahan, klik <code>Catat Mutasi</code>. 3. Untuk ubah data barang, gunakan tombol <code>Edit Data</code> di bawah.</p>
+    </section>
+
     <section class="stats-grid" style="margin-bottom: 18px;">
         <article class="panel stat-card">
             <span class="muted">Stok saat ini</span>
@@ -31,7 +34,7 @@
         </article>
         <article class="panel stat-card">
             <span class="muted">Rekomendasi beli</span>
-            <strong style="font-size: 2rem;">{{ number_format($item->recommendedPurchaseQuantityFor(), 0, ',', '.') }}</strong>
+            <strong style="font-size: 1.75rem;">{{ number_format($item->recommendedPurchaseQuantityFor(), 0, ',', '.') }}</strong>
             <p>{{ $item->category?->name ?? 'Tanpa kategori' }} di {{ $item->location?->name ?? 'lokasi belum diatur' }}.</p>
         </article>
     </section>
@@ -95,7 +98,7 @@
             <div class="section-header">
                 <div>
                     <div class="muted">Aksi cepat</div>
-                    <h3 class="section-title">Kelola Barang</h3>
+                    <h3 class="section-title">Langkah Utama</h3>
                 </div>
             </div>
 
@@ -109,40 +112,18 @@
                 </div>
 
                 <div class="stack-item">
-                    <strong>Kelola permintaan barang</strong>
-                    <p class="muted" style="margin: 8px 0 0;">Permintaan yang disetujui akan mengurangi stok baik lalu stok kurang baik secara otomatis.</p>
-                    <div class="button-row" style="margin-top: 14px;">
-                        <a class="button-secondary" href="{{ route('permintaan-barang.index') }}">Lihat Permintaan</a>
-                        <a class="button-ghost" href="{{ route('permintaan-barang.create') }}">Buat Permintaan</a>
-                    </div>
-                </div>
-
-                <div class="stack-item">
-                    <strong>Catat pembelian</strong>
-                    <p class="muted" style="margin: 8px 0 0;">Hasil pembelian otomatis masuk ke stok barang baik dan tercatat di riwayat.</p>
-                    <div class="button-row" style="margin-top: 14px;">
-                        <a class="button-secondary" href="{{ route('pembelian-barang.index') }}">Riwayat Pembelian</a>
-                        <a class="button-ghost" href="{{ route('pembelian-barang.create') }}">Tambah Pembelian</a>
-                    </div>
-                </div>
-
-                <div class="stack-item">
-                    <strong>Perbarui metadata barang</strong>
-                    <p class="muted" style="margin: 8px 0 0;">Edit kategori, lokasi, satuan, dan kondisi tanpa merusak histori stok.</p>
+                    <strong>Ubah data barang</strong>
+                    <p class="muted" style="margin: 8px 0 0;">Gunakan ini jika ingin mengganti nama, kategori, lokasi, satuan, atau stok minimum.</p>
                     <div class="button-row" style="margin-top: 14px;">
                         <a class="button-secondary" href="{{ route('barang.edit', $item) }}">Edit Data</a>
                     </div>
                 </div>
 
                 <div class="stack-item">
-                    <strong>Hapus barang</strong>
-                    <p class="muted" style="margin: 8px 0 0;">Gunakan hanya jika item memang tidak lagi dibutuhkan.</p>
+                    <strong>Kelola permintaan</strong>
+                    <p class="muted" style="margin: 8px 0 0;">Gunakan menu ini jika barang mau diajukan atau diproses sebagai permintaan.</p>
                     <div class="button-row" style="margin-top: 14px;">
-                        <form class="inline-form" method="POST" action="{{ route('barang.destroy', $item) }}">
-                            @csrf
-                            @method('DELETE')
-                            <button class="button-danger" type="submit">Hapus Barang</button>
-                        </form>
+                        <a class="button-secondary" href="{{ route('permintaan-barang.index') }}">Buka Permintaan</a>
                     </div>
                 </div>
             </div>

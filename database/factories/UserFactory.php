@@ -53,4 +53,14 @@ class UserFactory extends Factory
             'role' => User::ROLE_SUPERADMIN,
         ]);
     }
+
+    /**
+     * Indicate that the user is an admin.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_ADMIN,
+        ]);
+    }
 }
