@@ -103,6 +103,37 @@ body {
     margin-top: 4px;
 }
 
+.sidebar-logo {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.sidebar-brand, .auth-brand {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-brand {
+    margin-bottom: 12px;
+}
+
+.logo-subtitle {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+}
+
+.auth-logo {
+    height: 70px;
+    width: auto;
+}
+
 .nav-menu {
     display: flex;
     flex-direction: column;

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Item;
+use App\Models\RolePermission;
 use App\Models\StorageLocation;
 use App\Services\ItemCreationService;
 use App\Services\StockMovementService;
@@ -48,7 +49,11 @@ class ItemController extends Controller
         $categories = Category::query()->orderBy('name')->get();
         $locations = StorageLocation::query()->orderBy('name')->get();
 
-        return view('items.create', compact('categories', 'locations'));
+        return view('items.create', [
+            'categories' => $categories,
+            'locations' => $locations,
+            'canUseAssistant' => auth()->user()?->hasPermission(RolePermission::PERMISSION_ASSISTANT_USE) ?? false,
+        ]);
     }
 
     /**

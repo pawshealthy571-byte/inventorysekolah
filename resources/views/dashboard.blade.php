@@ -6,10 +6,12 @@
 @section('page_subtitle', 'Ringkasan operasional inventaris dan status stok terbaru.')
 
 @section('page_actions')
-    <a class="btn btn-primary" href="{{ route('stock-movements.create') }}">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-        Catat Mutasi
-    </a>
+    @if (auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_STOCK_MOVEMENTS_MANAGE))
+        <a class="btn btn-primary" href="{{ route('stock-movements.create') }}">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Catat Mutasi
+        </a>
+    @endif
 @endsection
 
 @section('content')
@@ -72,7 +74,7 @@
                 <h3 class="panel-title">Barang Perlu Restok</h3>
                 <p class="panel-subtitle">Prioritas tindak lanjut untuk menjaga ketersediaan barang.</p>
             </div>
-            @if (!$lowStockItems->isEmpty())
+            @if (!$lowStockItems->isEmpty() && auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_ITEMS_MANAGE))
                 <a class="btn btn-secondary" href="{{ route('barang.index', ['status' => 'menipis']) }}" style="padding: 8px 16px; font-size: 0.85rem;">
                     Lihat Semua
                 </a>
@@ -127,7 +129,9 @@
                             <td style="text-align: right;">
                                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
                                     <a class="btn btn-secondary" href="{{ route('barang.show', $item) ?? '#' }}" style="padding: 6px 14px; font-size: 0.85rem;">Detail</a>
-                                    <a class="btn btn-primary" href="{{ route('pembelian-barang.create') ?? '#' }}" style="padding: 6px 14px; font-size: 0.85rem;">Restok</a>
+                                    @if (auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_PURCHASES_MANAGE))
+                                        <a class="btn btn-primary" href="{{ route('pembelian-barang.create') ?? '#' }}" style="padding: 6px 14px; font-size: 0.85rem;">Restok</a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -183,7 +187,9 @@
                     <div class="muted">Pembelian terbaru</div>
                     <h3 class="section-title">Restok Terakhir</h3>
                 </div>
-                <a class="button-secondary" href="{{ route('pembelian-barang.index') }}">Lihat Semua</a>
+                @if (auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_PURCHASES_MANAGE))
+                    <a class="button-secondary" href="{{ route('pembelian-barang.index') }}">Lihat Semua</a>
+                @endif
             </div>
 
             @if ($recentPurchases->isEmpty())

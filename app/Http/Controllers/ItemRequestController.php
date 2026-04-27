@@ -85,6 +85,10 @@ class ItemRequestController extends Controller
         ItemRequest $permintaan,
         StockMovementService $stockMovementService
     ): RedirectResponse {
+        if (! $request->user()?->isAdmin() && ! $request->user()?->isSuperAdmin()) {
+            abort(403, 'Hanya admin yang dapat memproses permintaan barang.');
+        }
+
         $validated = $request->validate([
             'status' => ['required', Rule::in(['disetujui', 'ditolak'])],
             'review_note' => ['nullable', 'string'],

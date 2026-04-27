@@ -71,21 +71,27 @@
                             <p class="muted" style="margin-top: 12px;">{{ $requestItem->note }}</p>
                         @endif
 
-                        <div class="button-row" style="margin-top: 16px;">
-                            <form method="POST" action="{{ route('permintaan-barang.update-status', $requestItem) }}">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="status" value="disetujui">
-                                <button class="button" type="submit">Setujui</button>
-                            </form>
+                        @if(auth()->user()->isAdmin() || auth()->user()->isSuperAdmin())
+                            <div class="button-row" style="margin-top: 16px;">
+                                <form method="POST" action="{{ route('permintaan-barang.update-status', $requestItem) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="disetujui">
+                                    <button class="button" type="submit">Setujui</button>
+                                </form>
 
-                            <form method="POST" action="{{ route('permintaan-barang.update-status', $requestItem) }}">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="status" value="ditolak">
-                                <button class="button-danger" type="submit">Tolak</button>
-                            </form>
-                        </div>
+                                <form method="POST" action="{{ route('permintaan-barang.update-status', $requestItem) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="ditolak">
+                                    <button class="button-danger" type="submit">Tolak</button>
+                                </form>
+                            </div>
+                        @else
+                            <div class="meta" style="margin-top: 16px;">
+                                <span class="badge badge-warning">Dalam peninjauan Admin</span>
+                            </div>
+                        @endif
                     </article>
                 @endforeach
             </div>

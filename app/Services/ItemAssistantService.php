@@ -23,6 +23,31 @@ class ItemAssistantService
     public function buildDraft(string $message): array
     {
         $warnings = [];
+        $numericStoppers = [
+            'sku',
+            'kategori',
+            'lokasi',
+            'satuan',
+            'unit',
+            'minimum stok',
+            'min stok',
+            'minimal stok',
+            'stok minimum',
+            'stok baik',
+            'stok bagus',
+            'stok awal baik',
+            'stok kurang baik',
+            'stok kurangbaik',
+            'stok awal kurang baik',
+            'stok rusak',
+            'stok jelek',
+            'stok awal rusak',
+            'stok awal',
+            'stok',
+            'deskripsi',
+            'keterangan',
+            'catatan',
+        ];
 
         $name = $this->extractField($message, ['nama barang', 'nama', 'barang'], [
             'sku',
@@ -57,11 +82,11 @@ class ItemAssistantService
         ]);
 
         $description = $this->extractField($message, ['deskripsi', 'keterangan', 'catatan'], []);
-        $minimumStock = $this->extractInteger($message, '/\b(?:minimum stok|min stok|minimal stok|stok minimum)\s*[:=-]?\s*(\d+)/iu');
-        $stockGood = $this->extractInteger($message, '/\b(?:stok baik|stok awal baik)\s*[:=-]?\s*(\d+)/iu');
-        $stockLessGood = $this->extractInteger($message, '/\b(?:stok kurang baik|stok kurangbaik|stok awal kurang baik)\s*[:=-]?\s*(\d+)/iu');
-        $stockDamaged = $this->extractInteger($message, '/\b(?:stok rusak|stok awal rusak)\s*[:=-]?\s*(\d+)/iu');
-        $genericStock = $this->extractInteger($message, '/\b(?:stok awal|stok)\s*[:=-]?\s*(\d+)/iu');
+        $minimumStock = $this->extractNumericField($message, ['minimum stok', 'min stok', 'minimal stok', 'stok minimum'], $numericStoppers);
+        $stockGood = $this->extractNumericField($message, ['stok baik', 'stok bagus', 'stok awal baik'], $numericStoppers);
+        $stockLessGood = $this->extractNumericField($message, ['stok kurang baik', 'stok kurangbaik', 'stok awal kurang baik'], $numericStoppers);
+        $stockDamaged = $this->extractNumericField($message, ['stok rusak', 'stok jelek', 'stok awal rusak'], $numericStoppers);
+        $genericStock = $this->extractNumericField($message, ['stok awal', 'stok'], $numericStoppers);
 
         if ($stockGood === null && $stockLessGood === null && $stockDamaged === null && $genericStock !== null) {
             $stockGood = $genericStock;
@@ -194,13 +219,9 @@ class ItemAssistantService
         return trim((string) $matches[1]);
     }
 
-    private function extractInteger(string $message, string $pattern): ?int
+    private function extractNumericField(string $message, array $keywords, array $stoppers): ?int
     {
-        if (! preg_match($pattern, $message, $matches)) {
-            return null;
-        }
-
-        return (int) $matches[1];
+        return $this->parseNumberValue($this->extractField($message, $keywords, $stoppers));
     }
 
     private function matchCategory(?string $rawValue): ?Category
@@ -279,5 +300,134 @@ class ItemAssistantService
         } while ($exists);
 
         return $sku;
+    }
+
+    private function parseNumberValue(?string $rawValue): ?int
+    {
+        if (! $rawValue) {
+            return null;
+        }
+
+        if (preg_match('/\d+(?:[.,]\d+)*/', $rawValue, $matches)) {
+            return (int) preg_replace('/\D+/', '', (string) $matches[0]);
+        }
+
+        $normalizedTokens = collect(
+            preg_split('/\s+/', Str::of($rawValue)
+                ->ascii()
+                ->lower()
+                ->replaceMatches('/[^a-z0-9\s-]+/', ' ')
+                ->replace('-', ' ')
+                ->trim()
+                ->toString()) ?: []
+        )
+            ->filter()
+            ->map(function (string $token): string {
+                return match ($token) {
+                    'kosong' => 'nol',
+                    default => $token,
+                };
+            })
+            ->values();
+
+        if ($normalizedTokens->isEmpty()) {
+            return null;
+        }
+
+        $digitWords = [
+            'nol' => '0',
+            'satu' => '1',
+            'dua' => '2',
+            'tiga' => '3',
+            'empat' => '4',
+            'lima' => '5',
+            'enam' => '6',
+            'tujuh' => '7',
+            'delapan' => '8',
+            'sembilan' => '9',
+        ];
+
+        $onlyDigitTokens = $normalizedTokens
+            ->filter(fn (string $token): bool => array_key_exists($token, $digitWords) || preg_match('/^\d$/', $token) === 1)
+            ->values();
+
+        if ($onlyDigitTokens->count() === $normalizedTokens->count()) {
+            return (int) $onlyDigitTokens
+                ->map(fn (string $token): string => $digitWords[$token] ?? $token)
+                ->implode('');
+        }
+
+        $basicNumbers = [
+            'nol' => 0,
+            'satu' => 1,
+            'dua' => 2,
+            'tiga' => 3,
+            'empat' => 4,
+            'lima' => 5,
+            'enam' => 6,
+            'tujuh' => 7,
+            'delapan' => 8,
+            'sembilan' => 9,
+            'sepuluh' => 10,
+            'sebelas' => 11,
+            'seratus' => 100,
+            'seribu' => 1000,
+            'sejuta' => 1000000,
+        ];
+
+        $total = 0;
+        $current = 0;
+        $matched = false;
+
+        foreach ($normalizedTokens as $token) {
+            if (is_numeric($token)) {
+                $current += (int) $token;
+                $matched = true;
+                continue;
+            }
+
+            if (array_key_exists($token, $basicNumbers)) {
+                $current += $basicNumbers[$token];
+                $matched = true;
+                continue;
+            }
+
+            if ($token === 'belas') {
+                $current = ($current === 0 ? 1 : $current) + 10;
+                $matched = true;
+                continue;
+            }
+
+            if ($token === 'puluh') {
+                $current = max(1, $current) * 10;
+                $matched = true;
+                continue;
+            }
+
+            if ($token === 'ratus') {
+                $current = max(1, $current) * 100;
+                $matched = true;
+                continue;
+            }
+
+            if ($token === 'ribu') {
+                $total += max(1, $current) * 1000;
+                $current = 0;
+                $matched = true;
+                continue;
+            }
+
+            if ($token === 'juta') {
+                $total += max(1, $current) * 1000000;
+                $current = 0;
+                $matched = true;
+            }
+        }
+
+        if (! $matched) {
+            return null;
+        }
+
+        return $total + $current;
     }
 }

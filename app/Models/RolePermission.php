@@ -96,7 +96,7 @@ class RolePermission extends Model
      */
     public static function defaultMatrix(): array
     {
-        $inventoryPermissions = [
+        $operationalPermissions = [
             self::PERMISSION_DASHBOARD_VIEW,
             self::PERMISSION_DASHBOARD_OPERATIONAL,
             self::PERMISSION_ITEMS_VIEW,
@@ -107,10 +107,17 @@ class RolePermission extends Model
             self::PERMISSION_ASSISTANT_USE,
         ];
 
+        $basicPermissions = [
+            self::PERMISSION_DASHBOARD_VIEW,
+            self::PERMISSION_ITEMS_VIEW,
+            self::PERMISSION_REQUESTS_MANAGE,
+        ];
+
         return [
-            User::ROLE_USER => $inventoryPermissions,
+            User::ROLE_USER => $basicPermissions,
+            User::ROLE_GURU => $basicPermissions,
             User::ROLE_ADMIN => [
-                ...$inventoryPermissions,
+                ...$operationalPermissions,
                 self::PERMISSION_ACCOUNTS_MANAGE,
             ],
             User::ROLE_SUPERADMIN => array_keys(self::definitions()),

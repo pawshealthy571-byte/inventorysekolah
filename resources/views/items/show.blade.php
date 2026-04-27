@@ -7,7 +7,9 @@
 
 @section('page_actions')
     <a class="button-secondary" href="{{ route('barang.index') }}">Kembali ke Daftar</a>
-    <a class="button" href="{{ route('stock-movements.create', ['item' => $item->id]) }}">Catat Mutasi</a>
+    @if (auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_STOCK_MOVEMENTS_MANAGE))
+        <a class="button" href="{{ route('stock-movements.create', ['item' => $item->id]) }}">Catat Mutasi</a>
+    @endif
 @endsection
 
 @section('content')
@@ -103,25 +105,29 @@
             </div>
 
             <div class="stack-list">
-                <div class="stack-item">
-                    <strong>Catat barang masuk atau keluar</strong>
-                    <p class="muted" style="margin: 8px 0 0;">Gunakan form mutasi agar stok berubah lewat histori yang tercatat.</p>
-                    <div class="button-row" style="margin-top: 14px;">
-                        <a class="button" href="{{ route('stock-movements.create', ['item' => $item->id]) }}">Buka Mutasi</a>
+                @if (auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_STOCK_MOVEMENTS_MANAGE))
+                    <div class="stack-item">
+                        <strong>Catat barang masuk atau keluar</strong>
+                        <p class="muted" style="margin: 8px 0 0;">Gunakan form mutasi agar stok berubah lewat histori yang tercatat.</p>
+                        <div class="button-row" style="margin-top: 14px;">
+                            <a class="button" href="{{ route('stock-movements.create', ['item' => $item->id]) }}">Buka Mutasi</a>
+                        </div>
                     </div>
-                </div>
+                @endif
 
-                <div class="stack-item">
-                    <strong>Ubah data barang</strong>
-                    <p class="muted" style="margin: 8px 0 0;">Gunakan ini jika ingin mengganti nama, kategori, lokasi, satuan, atau stok minimum.</p>
-                    <div class="button-row" style="margin-top: 14px;">
-                        <a class="button-secondary" href="{{ route('barang.edit', $item) }}">Edit Data</a>
+                @if (auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_ITEMS_MANAGE))
+                    <div class="stack-item">
+                        <strong>Ubah data barang</strong>
+                        <p class="muted" style="margin: 8px 0 0;">Gunakan ini jika ingin mengganti nama, kategori, lokasi, satuan, atau stok minimum.</p>
+                        <div class="button-row" style="margin-top: 14px;">
+                            <a class="button-secondary" href="{{ route('barang.edit', $item) }}">Edit Data</a>
+                        </div>
                     </div>
-                </div>
+                @endif
 
                 <div class="stack-item">
                     <strong>Kelola permintaan</strong>
-                    <p class="muted" style="margin: 8px 0 0;">Gunakan menu ini jika barang mau diajukan atau diproses sebagai permintaan.</p>
+                    <p class="muted" style="margin: 8px 0 0;">Gunakan menu ini jika barang mau diajukan sebagai permintaan stok ke Admin.</p>
                     <div class="button-row" style="margin-top: 14px;">
                         <a class="button-secondary" href="{{ route('permintaan-barang.index') }}">Buka Permintaan</a>
                     </div>

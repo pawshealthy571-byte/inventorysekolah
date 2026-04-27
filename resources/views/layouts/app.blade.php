@@ -3,7 +3,13 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>@yield('title', 'Sekolah Permata Harapan')</title>
+        @php
+            $appName = \App\Models\Setting::getValue('app_name', 'Sekolah Permata Harapan');
+            $appSubtitle = \App\Models\Setting::getValue('app_subtitle', 'Sekolah Inventaris');
+            $appLogo = \App\Models\Setting::getValue('app_logo');
+            $logoUrl = $appLogo ? asset('storage/' . $appLogo) : asset('images/logo.png');
+        @endphp
+        <title>@yield('title', $appName)</title>
         <link rel="stylesheet" href="{{ asset('css/inventory.css') }}">
         <link rel="stylesheet" href="{{ asset('css/dashboard-premium.css') }}">
     </head>
@@ -13,7 +19,10 @@
             <aside class="sidebar">
                 @php($currentUser = auth()->user())
                 <div class="sidebar-header">
-                    <div class="brand-text">Permata Harapan<span>Sekolah & Inventaris</span></div>
+                    <a href="{{ route('dashboard') }}" class="sidebar-brand">
+                        <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="sidebar-logo">
+                        <span class="logo-subtitle">{{ $appSubtitle }}</span>
+                    </a>
                 </div>
                 
                 <nav class="nav-menu">
@@ -41,6 +50,12 @@
                             Mutasi Stok
                         </a>
                     @endif
+                    @if ($currentUser->isAdmin() || $currentUser->isSuperAdmin())
+                        <a href="{{ route('settings.index') }}" class="nav-item {{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Pengaturan
+                        </a>
+                    @endif
                 </nav>
             </aside>
 
@@ -48,7 +63,7 @@
             <main class="app-main">
                 <div class="page-header fade-in-up">
                     <div>
-                        <h1 class="page-title">@yield('page_title', 'Sekolah Permata Harapan')</h1>
+                        <h1 class="page-title">@yield('page_title', $appName)</h1>
                         <p class="page-subtitle">@yield('page_subtitle', 'Pantau inventaris sekolah dengan tampilan yang elegan.')</p>
                     </div>
                     <div class="header-actions">

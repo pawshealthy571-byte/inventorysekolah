@@ -6,7 +6,9 @@
 @section('page_subtitle', 'Filter inventaris berdasarkan nama, kategori, lokasi, dan status stok untuk melihat kondisi gudang dengan cepat.')
 
 @section('page_actions')
-    <a class="button" href="{{ route('barang.create') }}">Tambah Barang</a>
+    @if (auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_ITEMS_MANAGE))
+        <a class="button" href="{{ route('barang.create') }}">Tambah Barang</a>
+    @endif
 @endsection
 
 @section('content')

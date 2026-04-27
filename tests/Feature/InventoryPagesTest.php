@@ -235,6 +235,31 @@ class InventoryPagesTest extends TestCase
         ]);
     }
 
+    public function test_user_can_create_item_from_voice_like_assistant_message(): void
+    {
+        $this->seed(InventorySeeder::class);
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->postJson(route('ai.barang-chat'), [
+            'message' => 'Tambah barang Proyektor Mini kategori Elektronik lokasi Ruang Multimedia satuan unit minimum stok lima stok baik dua belas stok kurang baik satu stok rusak nol deskripsi Untuk presentasi kelas.',
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'message' => 'Barang Proyektor Mini berhasil ditambahkan ke database.',
+            ]);
+
+        $item = Item::query()->where('name', 'Proyektor Mini')->firstOrFail();
+
+        $this->assertSame(5, $item->minimum_stock);
+        $this->assertSame(13, $item->stock);
+        $this->assertSame(12, $item->stock_good);
+        $this->assertSame(1, $item->stock_less_good);
+        $this->assertSame(0, $item->stock_damaged);
+        $this->assertSame('unit', $item->unit);
+    }
+
     public function test_guest_cannot_access_inventory_pages(): void
     {
         $this->seed(InventorySeeder::class);

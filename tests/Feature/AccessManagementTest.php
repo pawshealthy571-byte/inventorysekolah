@@ -140,4 +140,32 @@ class AccessManagementTest extends TestCase
             ->get(route('barang.create'))
             ->assertForbidden();
     }
+
+    public function test_create_item_page_hides_assistant_when_role_cannot_use_it(): void
+    {
+        $superadmin = User::factory()->superAdmin()->create();
+        $user = User::factory()->create();
+
+        $defaultMatrix = RolePermission::defaultMatrix();
+        $userPermissions = array_values(array_diff(
+            $defaultMatrix[User::ROLE_USER],
+            [RolePermission::PERMISSION_ASSISTANT_USE],
+        ));
+
+        $this->actingAs($superadmin)
+            ->put(route('profile.access.update'), [
+                'permissions' => [
+                    User::ROLE_USER => $userPermissions,
+                    User::ROLE_ADMIN => $defaultMatrix[User::ROLE_ADMIN],
+                ],
+            ])
+            ->assertRedirect(route('profile.access.show'));
+
+        $this->actingAs($user)
+            ->get(route('barang.create'))
+            ->assertOk()
+            ->assertDontSee('Tambah Barang Dengan Chat atau Suara')
+            ->assertSee('AI assistant belum aktif untuk akun ini.')
+            ->assertSee('Data Inventaris Baru');
+    }
 }

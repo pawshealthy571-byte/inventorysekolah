@@ -19,6 +19,8 @@ class User extends Authenticatable
 
     public const ROLE_USER = 'user';
 
+    public const ROLE_GURU = 'guru';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -117,6 +119,7 @@ class User extends Authenticatable
         if ($this->isAdmin()) {
             return [
                 self::ROLE_USER,
+                self::ROLE_GURU,
                 self::ROLE_ADMIN,
             ];
         }
@@ -179,6 +182,7 @@ class User extends Authenticatable
     {
         return [
             self::ROLE_USER => 'Pengguna',
+            self::ROLE_GURU => 'Guru',
             self::ROLE_ADMIN => 'Admin',
             self::ROLE_SUPERADMIN => 'Superadmin',
         ];
@@ -193,6 +197,7 @@ class User extends Authenticatable
     {
         return [
             self::ROLE_USER,
+            self::ROLE_GURU,
             self::ROLE_ADMIN,
         ];
     }

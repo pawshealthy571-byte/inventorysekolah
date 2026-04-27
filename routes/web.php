@@ -7,6 +7,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemRequestController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StockMovementController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,21 +29,6 @@ Route::middleware('auth')->group(function () {
     Route::get('profil', [ProfileController::class, 'show'])->name('profile.show');
     Route::patch('profil', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('profil/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
-    Route::get('profil/accounts', [ProfileController::class, 'showAccounts'])
-        ->middleware('permission:accounts.manage')
-        ->name('profile.accounts.show');
-    Route::post('profil/accounts', [ProfileController::class, 'storeManagedUser'])
-        ->middleware('permission:accounts.manage')
-        ->name('profile.accounts.store');
-    Route::patch('profil/accounts/{managedUser}', [ProfileController::class, 'updateManagedUser'])
-        ->middleware('permission:accounts.manage')
-        ->name('profile.accounts.update');
-    Route::get('profil/access', [ProfileController::class, 'showAccess'])
-        ->middleware('permission:access.manage')
-        ->name('profile.access.show');
-    Route::put('profil/access', [ProfileController::class, 'updateAccess'])
-        ->middleware('permission:access.manage')
-        ->name('profile.access.update');
 
     Route::post('ai/barang-chat', [ItemAssistantController::class, 'store'])
         ->middleware('permission:assistant.use')
@@ -99,5 +85,29 @@ Route::middleware('auth')->group(function () {
     Route::post('mutasi-stok', [StockMovementController::class, 'store'])
         ->middleware('permission:stock-movements.manage')
         ->name('stock-movements.store');
+    Route::prefix('pengaturan')->group(function () {
+        Route::get('/', [SettingController::class, 'index'])->name('settings.index');
+        Route::put('/', [SettingController::class, 'update'])->name('settings.update');
+
+        // Akun Manajemen
+        Route::get('akun', [SettingController::class, 'accounts'])
+            ->middleware('permission:accounts.manage')
+            ->name('settings.accounts');
+        Route::post('akun', [SettingController::class, 'storeAccount'])
+            ->middleware('permission:accounts.manage')
+            ->name('settings.accounts.store');
+        Route::put('akun/{managedUser}', [SettingController::class, 'updateAccount'])
+            ->middleware('permission:accounts.manage')
+            ->name('settings.accounts.update');
+
+        // Akses Manajemen
+        Route::get('akses', [SettingController::class, 'access'])
+            ->middleware('permission:access.manage')
+            ->name('settings.access');
+        Route::put('akses', [SettingController::class, 'updateAccess'])
+            ->middleware('permission:access.manage')
+            ->name('settings.access.update');
+    });
+
     Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
 });

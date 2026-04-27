@@ -1353,6 +1353,108 @@ Option {
     border-top: 1px solid rgba(15, 23, 42, 0.06);
 }
 
+.accounts-table {
+    min-width: 940px;
+}
+
+.accounts-table th,
+.accounts-table td {
+    vertical-align: top;
+}
+
+.accounts-row-active td {
+    background: #fff7ed;
+}
+
+.table tr.accounts-row-active:hover td {
+    background: #ffedd5;
+}
+
+.account-table-user {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+}
+
+.account-table-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--primary-soft), #ffedd5);
+    color: var(--primary-hover);
+    font-weight: 800;
+    border: 1px solid rgba(249, 115, 22, 0.18);
+}
+
+.account-table-avatar--photo {
+    object-fit: cover;
+}
+
+.account-table-copy,
+.account-table-date,
+.account-table-status {
+    display: grid;
+    gap: 6px;
+}
+
+.account-table-copy {
+    min-width: 0;
+}
+
+.account-table-copy p {
+    color: var(--text-main);
+    word-break: break-word;
+}
+
+.account-table-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.account-table-heading strong,
+.account-table-date strong {
+    color: var(--text-main);
+}
+
+.account-table-meta {
+    display: flex;
+    gap: 8px 12px;
+    flex-wrap: wrap;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.account-table-subcopy {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.45;
+    margin-top: 8px;
+}
+
+.account-inline-note {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(2, 132, 199, 0.08);
+    color: #0c4a6e;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.account-inline-note--accent {
+    background: rgba(249, 115, 22, 0.12);
+    color: var(--primary-hover);
+}
+
 .profile-access-table th,
 .profile-access-table td {
     vertical-align: top;
@@ -1673,5 +1775,50 @@ Option {
     .detail-row {
         grid-template-columns: 1fr;
         gap: 6px;
+    }
+
+    .accounts-table {
+        min-width: 0;
+    }
+
+    .accounts-table thead {
+        display: none;
+    }
+
+    .accounts-table,
+    .accounts-table tbody,
+    .accounts-table tr,
+    .accounts-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .accounts-table tr {
+        padding: 16px;
+        border-bottom: 1px solid rgba(39, 39, 42, 0.08);
+    }
+
+    .accounts-table tr:last-child {
+        border-bottom: 0;
+    }
+
+    .accounts-table td {
+        padding: 0;
+        border-bottom: 0;
+    }
+
+    .accounts-table td + td {
+        margin-top: 14px;
+    }
+
+    .accounts-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 6px;
+        color: var(--ink-soft);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
     }
 }

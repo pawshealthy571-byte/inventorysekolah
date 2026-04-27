@@ -142,7 +142,7 @@
                 <div class="profile-panel-body">
                     <div class="profile-link-grid">
                         @if ($canManageAccounts)
-                            <a class="profile-link-card" href="{{ route('profile.accounts.show') }}">
+                            <a class="profile-link-card" href="{{ route('settings.accounts') }}">
                                 <strong>Akun Management</strong>
                                 <p>Kelola akun yang bisa dibuat, diubah, diberi role, dan di-reset password-nya.</p>
                                 <span>Buka halaman akun</span>
@@ -150,7 +150,7 @@
                         @endif
 
                         @if ($canManageAccess)
-                            <a class="profile-link-card" href="{{ route('profile.access.show') }}">
+                            <a class="profile-link-card" href="{{ route('settings.access') }}">
                                 <strong>Akses Management</strong>
                                 <p>Atur modul apa saja yang bisa diakses oleh role `Pengguna` dan `Admin`.</p>
                                 <span>Buka halaman akses</span>
