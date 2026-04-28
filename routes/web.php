@@ -7,6 +7,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemRequestController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\PurchaseReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StockMovementController;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +79,16 @@ Route::middleware('auth')->group(function () {
     Route::post('pembelian-barang', [PurchaseController::class, 'store'])
         ->middleware('permission:purchases.manage')
         ->name('pembelian-barang.store');
+
+    Route::get('laporan-pengeluaran', [PurchaseReportController::class, 'index'])
+        ->middleware('permission:purchases.manage')
+        ->name('laporan-pengeluaran.index');
+    Route::get('laporan-pengeluaran/excel', [PurchaseReportController::class, 'exportExcel'])
+        ->middleware('permission:purchases.manage')
+        ->name('laporan-pengeluaran.excel');
+    Route::get('laporan-pengeluaran/pdf', [PurchaseReportController::class, 'exportPdf'])
+        ->middleware('permission:purchases.manage')
+        ->name('laporan-pengeluaran.pdf');
 
     Route::get('mutasi-stok/create', [StockMovementController::class, 'create'])
         ->middleware('permission:stock-movements.manage')

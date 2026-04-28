@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+
         <title>@yield('title', 'Autentikasi Inventaris Sekolah')</title>
         <link rel="stylesheet" href="{{ asset('css/dashboard-premium.css') }}">
     </head>
@@ -25,6 +26,7 @@
                         <p class="auth-page-subtitle">@yield('page_subtitle', 'Masuk atau buat akun untuk mengelola stok, lokasi penyimpanan, dan mutasi barang dalam satu dashboard.')</p>
                     </div>
                     <div class="header-actions">
+
                         @yield('header_actions')
                     </div>
                 </div>
@@ -57,5 +59,6 @@
                 </div>
             </section>
         </main>
+
     </body>
 </html>

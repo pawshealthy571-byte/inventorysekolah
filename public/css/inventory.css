@@ -1807,7 +1807,7 @@ Option {
         border-bottom: 0;
     }
 
-    .accounts-table td + td {
+    .accounts-table td+td {
         margin-top: 14px;
     }
 
