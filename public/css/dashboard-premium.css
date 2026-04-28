@@ -113,6 +113,7 @@ body {
     text-decoration: none;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
 }
 
 .auth-brand {
@@ -132,6 +133,8 @@ body {
 .auth-logo {
     height: 70px;
     width: auto;
+    max-width: 100%;
+    object-fit: contain;
 }
 
 .nav-menu {
