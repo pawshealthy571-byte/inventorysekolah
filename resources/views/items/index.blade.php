@@ -3,7 +3,7 @@
 @section('title', 'Daftar Barang')
 @section('eyebrow', 'Inventaris Sekolah')
 @section('page_title', 'Daftar Barang')
-@section('page_subtitle', 'Filter inventaris berdasarkan nama, kategori, lokasi, dan status stok untuk melihat kondisi gudang dengan cepat.')
+@section('page_subtitle', 'Filter inventaris berdasarkan nama, lokasi, dan status stok untuk melihat kondisi gudang dengan cepat.')
 
 @section('page_actions')
     @if (auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_ITEMS_MANAGE))
@@ -26,17 +26,7 @@
                 <input class="input" id="q" name="q" type="text" value="{{ $filters['q'] ?? '' }}" placeholder="Contoh: ATK-001 atau Proyektor">
             </div>
 
-            <div class="field">
-                <label for="category">Kategori</label>
-                <select class="select" id="category" name="category">
-                    <option value="">Semua kategori</option>
-                    @foreach ($categories as $category)
-                        <option value="{{ $category->id }}" @selected((string) ($filters['category'] ?? '') === (string) $category->id)>
-                            {{ $category->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+
 
             <div class="field">
                 <label for="location">Lokasi</label>
@@ -82,11 +72,7 @@
             <strong>{{ number_format($items->filter(fn ($item) => $item->isLowStock())->count(), 0, ',', '.') }}</strong>
             <p>Barang yang perlu segera ditindak lanjuti.</p>
         </article>
-        <article class="panel stat-card">
-            <span class="muted">Kategori tercakup</span>
-            <strong>{{ number_format($items->pluck('category_id')->filter()->unique()->count(), 0, ',', '.') }}</strong>
-            <p>Jumlah kategori yang muncul di hasil pencarian.</p>
-        </article>
+
     </section>
 
     <section class="panel section-card">
@@ -106,7 +92,6 @@
                     <thead>
                         <tr>
                             <th>Barang</th>
-                            <th>Kategori</th>
                             <th>Lokasi</th>
                             <th>Stok</th>
                             <th>Kondisi Stok</th>
@@ -123,7 +108,6 @@
                                         <span>{{ $item->unit }}</span>
                                     </div>
                                 </td>
-                                <td>{{ $item->category?->name ?? 'Tanpa kategori' }}</td>
                                 <td>{{ $item->location?->name ?? 'Belum diatur' }}</td>
                                 <td>
                                     <span class="badge {{ $item->isLowStock() ? 'badge-danger' : 'badge-accent' }}">

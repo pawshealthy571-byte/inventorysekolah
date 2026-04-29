@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Category;
 use App\Models\Item;
 use App\Models\StorageLocation;
 use App\Models\User;
@@ -17,7 +16,7 @@ class InventoryPagesTest extends TestCase
     public function test_inventory_pages_render_successfully(): void
     {
         $this->seed(InventorySeeder::class);
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $item = Item::query()->firstOrFail();
 
@@ -64,15 +63,13 @@ class InventoryPagesTest extends TestCase
     public function test_user_can_create_an_item_with_initial_stock(): void
     {
         $this->seed(InventorySeeder::class);
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
-        $category = Category::query()->firstOrFail();
         $location = StorageLocation::query()->firstOrFail();
 
         $response = $this->actingAs($user)->post(route('barang.store'), [
             'name' => 'Kertas HVS A4',
             'sku' => 'ATK-777',
-            'category_id' => $category->id,
             'storage_location_id' => $location->id,
             'unit' => 'rim',
             'minimum_stock' => 5,
@@ -100,7 +97,7 @@ class InventoryPagesTest extends TestCase
     public function test_user_can_record_stock_movement(): void
     {
         $this->seed(InventorySeeder::class);
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $item = Item::query()->where('sku', 'ATK-001')->firstOrFail();
         $originalStock = $item->stock;
@@ -130,7 +127,7 @@ class InventoryPagesTest extends TestCase
     public function test_approved_request_reduces_stock_automatically(): void
     {
         $this->seed(InventorySeeder::class);
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
         $item = Item::query()->where('sku', 'ATK-001')->firstOrFail();
 
         $requestResponse = $this->actingAs($user)->post(route('permintaan-barang.store'), [
@@ -166,7 +163,7 @@ class InventoryPagesTest extends TestCase
     public function test_purchase_adds_stock_to_good_bucket_automatically(): void
     {
         $this->seed(InventorySeeder::class);
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
         $item = Item::query()->where('sku', 'ATK-014')->firstOrFail();
 
         $originalGoodStock = $item->stock_good;
@@ -201,15 +198,13 @@ class InventoryPagesTest extends TestCase
     public function test_user_can_create_item_from_assistant_chat(): void
     {
         $this->seed(InventorySeeder::class);
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
-        $category = Category::query()->firstOrFail();
         $location = StorageLocation::query()->firstOrFail();
 
         $response = $this->actingAs($user)->postJson(route('ai.barang-chat'), [
             'message' => sprintf(
-                'Tambah barang Spidol AI kategori %s lokasi %s satuan pcs minimum stok 3 stok baik 15 deskripsi Untuk kebutuhan presentasi',
-                $category->name,
+                'Tambah barang Spidol AI lokasi %s satuan pcs minimum stok 3 stok baik 15 deskripsi Untuk kebutuhan presentasi',
                 $location->name,
             ),
         ]);
@@ -222,7 +217,6 @@ class InventoryPagesTest extends TestCase
 
         $item = Item::query()->where('name', 'Spidol AI')->firstOrFail();
 
-        $this->assertSame($category->id, $item->category_id);
         $this->assertSame($location->id, $item->storage_location_id);
         $this->assertSame(15, $item->stock);
         $this->assertSame('pcs', $item->unit);
@@ -238,10 +232,10 @@ class InventoryPagesTest extends TestCase
     public function test_user_can_create_item_from_voice_like_assistant_message(): void
     {
         $this->seed(InventorySeeder::class);
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $response = $this->actingAs($user)->postJson(route('ai.barang-chat'), [
-            'message' => 'Tambah barang Proyektor Mini kategori Elektronik lokasi Ruang Multimedia satuan unit minimum stok lima stok baik dua belas stok kurang baik satu stok rusak nol deskripsi Untuk presentasi kelas.',
+            'message' => 'Tambah barang Proyektor Mini lokasi Ruang Multimedia satuan unit minimum stok lima stok baik dua belas stok kurang baik satu stok rusak nol deskripsi Untuk presentasi kelas.',
         ]);
 
         $response->assertOk()

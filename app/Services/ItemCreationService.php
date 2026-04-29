@@ -21,7 +21,6 @@ class ItemCreationService
         return Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['required', 'string', 'max:100', 'unique:items,sku'],
-            'category_id' => ['nullable', 'exists:categories,id'],
             'storage_location_id' => ['nullable', 'exists:storage_locations,id'],
             'unit' => ['required', 'string', 'max:50'],
             'minimum_stock' => ['required', 'integer', 'min:0'],
@@ -48,7 +47,6 @@ class ItemCreationService
         $item = Item::query()->create([
             'name' => $validated['name'],
             'sku' => $validated['sku'],
-            'category_id' => $validated['category_id'] ?? null,
             'storage_location_id' => $validated['storage_location_id'] ?? null,
             'unit' => $validated['unit'],
             'minimum_stock' => $validated['minimum_stock'],

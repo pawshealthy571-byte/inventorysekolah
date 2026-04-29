@@ -3,7 +3,7 @@
 @section('title', 'Operasional Gudang')
 @section('eyebrow', 'Detail Operasional')
 @section('page_title', 'Operasional Gudang')
-@section('page_subtitle', 'Halaman ini menampung detail stok menipis, mutasi terbaru, kategori, lokasi, dan kondisi barang agar dashboard utama tetap ringkas.')
+@section('page_subtitle', 'Halaman ini menampung detail stok menipis, mutasi terbaru, lokasi, dan kondisi barang agar dashboard utama tetap ringkas.')
 
 @section('page_actions')
     <a class="button-secondary" href="{{ route('dashboard') }}">Kembali ke Dashboard</a>
@@ -12,7 +12,6 @@
 
 @section('content')
     @php
-        $maxCategoryItems = max((int) ($categories->max('items_count') ?? 1), 1);
         $maxLocationItems = max((int) ($locations->max('items_count') ?? 1), 1);
     @endphp
 
@@ -41,7 +40,7 @@
         <article class="panel stat-card">
             <span class="muted">Data barang</span>
             <strong>{{ number_format($summary['item_count'], 0, ',', '.') }}</strong>
-            <p>{{ number_format($summary['category_count'], 0, ',', '.') }} kategori dan {{ number_format($summary['location_count'], 0, ',', '.') }} lokasi.</p>
+            <p>{{ number_format($summary['location_count'], 0, ',', '.') }} lokasi aktif di gudang.</p>
         </article>
         <article class="panel stat-card">
             <span class="muted">Stok menipis</span>
@@ -76,7 +75,6 @@
                                     <strong>{{ $item->name }}</strong>
                                     <div class="meta">
                                         <span>SKU {{ $item->sku }}</span>
-                                        <span>{{ $item->category?->name ?? 'Tanpa kategori' }}</span>
                                         <span>{{ $item->location?->name ?? 'Lokasi belum diatur' }}</span>
                                     </div>
                                 </div>
@@ -176,38 +174,7 @@
             @endif
         </article>
 
-        <article class="panel section-card">
-            <div class="section-header">
-                <div>
-                    <div class="muted">Sebaran data</div>
-                    <h3 class="section-title">Kategori Terpadat</h3>
-                </div>
-            </div>
 
-            @if ($categories->isEmpty())
-                <div class="empty-state">Kategori belum tersedia.</div>
-            @else
-                <div class="stack-list">
-                    @foreach ($categories as $category)
-                        <div class="stack-item">
-                            <div class="list-top">
-                                <strong>{{ $category->name }}</strong>
-                                <span class="muted">{{ number_format($category->items_count, 0, ',', '.') }} barang</span>
-                            </div>
-                            <div class="bar">
-                                <span style="width: {{ max((int) round(($category->items_count / $maxCategoryItems) * 100), 8) }}%"></span>
-                            </div>
-                            <div class="meta">
-                                <span>Total stok {{ number_format((int) ($category->stock_total ?? 0), 0, ',', '.') }}</span>
-                                @if ($category->description)
-                                    <span>{{ $category->description }}</span>
-                                @endif
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </article>
 
         <article class="panel section-card">
             <div class="section-header">

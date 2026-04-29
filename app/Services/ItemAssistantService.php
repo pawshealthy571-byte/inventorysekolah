@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Category;
 use App\Models\Item;
 use App\Models\StorageLocation;
 use Illuminate\Support\Collection;
@@ -25,7 +24,6 @@ class ItemAssistantService
         $warnings = [];
         $numericStoppers = [
             'sku',
-            'kategori',
             'lokasi',
             'satuan',
             'unit',
@@ -51,7 +49,6 @@ class ItemAssistantService
 
         $name = $this->extractField($message, ['nama barang', 'nama', 'barang'], [
             'sku',
-            'kategori',
             'lokasi',
             'satuan',
             'unit',
@@ -106,21 +103,7 @@ class ItemAssistantService
         $stockLessGood ??= 0;
         $stockDamaged ??= 0;
 
-        $categoryName = $this->extractField($message, ['kategori'], [
-            'lokasi',
-            'satuan',
-            'unit',
-            'minimum stok',
-            'min stok',
-            'minimal stok',
-            'stok baik',
-            'stok kurang baik',
-            'stok rusak',
-            'stok awal',
-            'deskripsi',
-            'keterangan',
-            'catatan',
-        ]);
+
         $locationName = $this->extractField($message, ['lokasi'], [
             'satuan',
             'unit',
@@ -136,12 +119,7 @@ class ItemAssistantService
             'catatan',
         ]);
 
-        $category = $this->matchCategory($categoryName);
         $location = $this->matchLocation($locationName);
-
-        if ($categoryName && ! $category) {
-            $warnings[] = "Kategori `{$categoryName}` tidak ditemukan, barang akan disimpan tanpa kategori.";
-        }
 
         if ($locationName && ! $location) {
             $warnings[] = "Lokasi `{$locationName}` tidak ditemukan, barang akan disimpan tanpa lokasi.";
@@ -161,7 +139,6 @@ class ItemAssistantService
         $attributes = [
             'name' => $name,
             'sku' => $sku,
-            'category_id' => $category?->id,
             'storage_location_id' => $location?->id,
             'unit' => $unit,
             'minimum_stock' => $minimumStock,
@@ -174,7 +151,6 @@ class ItemAssistantService
         $summary = array_values(array_filter([
             $name ? "Nama: {$name}" : null,
             $sku ? "SKU: {$sku}" : null,
-            $category ? "Kategori: {$category->name}" : 'Kategori: tidak diisi',
             $location ? "Lokasi: {$location->name}" : 'Lokasi: tidak diisi',
             "Satuan: {$unit}",
             'Minimum stok: ' . $minimumStock,
@@ -222,19 +198,6 @@ class ItemAssistantService
     private function extractNumericField(string $message, array $keywords, array $stoppers): ?int
     {
         return $this->parseNumberValue($this->extractField($message, $keywords, $stoppers));
-    }
-
-    private function matchCategory(?string $rawValue): ?Category
-    {
-        if (! $rawValue) {
-            return null;
-        }
-
-        return $this->bestTextMatch(
-            Category::query()->orderBy('name')->get(),
-            $rawValue,
-            fn (Category $category): string => $category->name,
-        );
     }
 
     private function matchLocation(?string $rawValue): ?StorageLocation

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemAssistantController;
@@ -99,6 +100,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('pengaturan')->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('settings.index');
         Route::put('/', [SettingController::class, 'update'])->name('settings.update');
+
+        Route::get('log-aktivitas', [ActivityLogController::class, 'index'])
+            ->middleware('permission:activity-logs.view')
+            ->name('activity-logs.index');
 
         // Akun Manajemen
         Route::get('akun', [SettingController::class, 'accounts'])

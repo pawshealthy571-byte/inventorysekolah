@@ -45,7 +45,7 @@
             </div>
             <div class="stat-label">Jenis Barang</div>
             <div class="stat-value">{{ number_format($summary['item_count'], 0, ',', '.') }}</div>
-            <div class="stat-desc">{{ number_format($summary['category_count'], 0, ',', '.') }} kategori & {{ number_format($summary['location_count'], 0, ',', '.') }} lokasi.</div>
+            <div class="stat-desc">{{ number_format($summary['location_count'], 0, ',', '.') }} lokasi aktif di gudang.</div>
         </div>
 
         <div class="stat-card">
@@ -113,7 +113,7 @@
                             </td>
                             <td>
                                 <div style="color: var(--text-main); font-weight: 500;">
-                                    {{ $item->category?->name ?? 'Tanpa kategori' }}
+                                    Lokasi Penyimpanan
                                 </div>
                                 <div style="color: var(--text-muted); font-size: 0.85rem;">
                                     {{ $item->location?->name ?? 'Lokasi belum diatur' }}

@@ -13,17 +13,7 @@
         <input class="input" id="sku" name="sku" type="text" value="{{ old('sku', $item->sku ?? '') }}" required>
     </div>
 
-    <div class="field">
-        <label for="category_id">Kategori</label>
-        <select class="select" id="category_id" name="category_id">
-            <option value="">Pilih kategori</option>
-            @foreach ($categories as $category)
-                <option value="{{ $category->id }}" @selected((string) old('category_id', $item->category_id ?? '') === (string) $category->id)>
-                    {{ $category->name }}
-                </option>
-            @endforeach
-        </select>
-    </div>
+
 
     <div class="field">
         <label for="storage_location_id">Lokasi penyimpanan</label>

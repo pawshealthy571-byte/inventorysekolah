@@ -37,7 +37,7 @@
         <article class="panel stat-card">
             <span class="muted">Rekomendasi beli</span>
             <strong style="font-size: 1.75rem;">{{ number_format($item->recommendedPurchaseQuantityFor(), 0, ',', '.') }}</strong>
-            <p>{{ $item->category?->name ?? 'Tanpa kategori' }} di {{ $item->location?->name ?? 'lokasi belum diatur' }}.</p>
+            <p>Tersedia di {{ $item->location?->name ?? 'lokasi belum diatur' }}.</p>
         </article>
     </section>
 
@@ -59,10 +59,7 @@
                     <strong>SKU</strong>
                     <div>{{ $item->sku }}</div>
                 </div>
-                <div class="detail-row">
-                    <strong>Kategori</strong>
-                    <div>{{ $item->category?->name ?? 'Tanpa kategori' }}</div>
-                </div>
+
                 <div class="detail-row">
                     <strong>Lokasi</strong>
                     <div>{{ $item->location?->name ?? 'Belum diatur' }}</div>
@@ -118,7 +115,7 @@
                 @if (auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_ITEMS_MANAGE))
                     <div class="stack-item">
                         <strong>Ubah data barang</strong>
-                        <p class="muted" style="margin: 8px 0 0;">Gunakan ini jika ingin mengganti nama, kategori, lokasi, satuan, atau stok minimum.</p>
+                        <p class="muted" style="margin: 8px 0 0;">Gunakan ini jika ingin mengganti nama, lokasi, satuan, atau stok minimum.</p>
                         <div class="button-row" style="margin-top: 14px;">
                             <a class="button-secondary" href="{{ route('barang.edit', $item) }}">Edit Data</a>
                         </div>

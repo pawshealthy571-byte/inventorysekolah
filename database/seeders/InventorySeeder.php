@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use App\Models\Item;
 use App\Models\ItemRequest;
 use App\Models\Purchase;
@@ -23,20 +22,7 @@ class InventorySeeder extends Seeder
             return;
         }
 
-        $categories = collect([
-            ['name' => 'ATK', 'description' => 'Perlengkapan administrasi dan kelas.'],
-            ['name' => 'Buku Pelajaran', 'description' => 'Buku paket dan buku penunjang.'],
-            ['name' => 'Kebersihan', 'description' => 'Peralatan dan bahan kebersihan sekolah.'],
-            ['name' => 'Elektronik', 'description' => 'Perangkat pendukung kegiatan belajar.'],
-        ])->mapWithKeys(function (array $category): array {
-            $record = Category::query()->create([
-                'name' => $category['name'],
-                'slug' => Str::slug($category['name']),
-                'description' => $category['description'],
-            ]);
 
-            return [$record->name => $record];
-        });
 
         $locations = collect([
             ['name' => 'Gudang Utama', 'code' => 'GDU', 'description' => 'Ruang penyimpanan pusat untuk kebutuhan umum.'],
@@ -56,7 +42,6 @@ class InventorySeeder extends Seeder
                 'data' => [
                     'sku' => 'ATK-001',
                     'name' => 'Buku Tulis 38 Lembar',
-                    'category_id' => $categories['ATK']->id,
                     'storage_location_id' => $locations['GDU']->id,
                     'unit' => 'pack',
                     'minimum_stock' => 12,
@@ -72,7 +57,6 @@ class InventorySeeder extends Seeder
                 'data' => [
                     'sku' => 'ATK-014',
                     'name' => 'Spidol Whiteboard',
-                    'category_id' => $categories['ATK']->id,
                     'storage_location_id' => $locations['ATK-TU']->id,
                     'unit' => 'box',
                     'minimum_stock' => 8,
@@ -88,7 +72,6 @@ class InventorySeeder extends Seeder
                 'data' => [
                     'sku' => 'BKP-007',
                     'name' => 'Buku Matematika Kelas 8',
-                    'category_id' => $categories['Buku Pelajaran']->id,
                     'storage_location_id' => $locations['GDU']->id,
                     'unit' => 'eksemplar',
                     'minimum_stock' => 20,
@@ -104,7 +87,6 @@ class InventorySeeder extends Seeder
                 'data' => [
                     'sku' => 'ELK-003',
                     'name' => 'Proyektor LCD',
-                    'category_id' => $categories['Elektronik']->id,
                     'storage_location_id' => $locations['MULTI']->id,
                     'unit' => 'unit',
                     'minimum_stock' => 2,
@@ -121,7 +103,6 @@ class InventorySeeder extends Seeder
                 'data' => [
                     'sku' => 'KBS-010',
                     'name' => 'Cairan Pembersih Lantai',
-                    'category_id' => $categories['Kebersihan']->id,
                     'storage_location_id' => $locations['GBS']->id,
                     'unit' => 'botol',
                     'minimum_stock' => 15,

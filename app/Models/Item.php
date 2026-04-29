@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Item extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -18,7 +19,6 @@ class Item extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'category_id',
         'storage_location_id',
         'sku',
         'name',
@@ -40,7 +40,6 @@ class Item extends Model
     protected function casts(): array
     {
         return [
-            'category_id' => 'integer',
             'storage_location_id' => 'integer',
             'stock' => 'integer',
             'stock_good' => 'integer',
@@ -48,14 +47,6 @@ class Item extends Model
             'stock_damaged' => 'integer',
             'minimum_stock' => 'integer',
         ];
-    }
-
-    /**
-     * Get the category that owns the item.
-     */
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
     }
 
     /**

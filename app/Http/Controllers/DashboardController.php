@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Item;
 use App\Models\ItemRequest;
 use App\Models\Purchase;
@@ -51,7 +50,6 @@ class DashboardController extends Controller
                 'recentMovements' => collect(),
                 'recentRequests' => collect(),
                 'recentPurchases' => collect(),
-                'categories' => collect(),
                 'locations' => collect(),
                 'conditionSummary' => $this->emptyConditionSummary(),
                 'setupRequired' => true,
@@ -64,7 +62,6 @@ class DashboardController extends Controller
             'recentMovements' => $this->recentMovements(),
             'recentRequests' => $this->recentRequests(),
             'recentPurchases' => $this->recentPurchases(),
-            'categories' => $this->categories(),
             'locations' => $this->locations(),
             'conditionSummary' => $this->conditionSummary(),
             'setupRequired' => false,
@@ -80,7 +77,6 @@ class DashboardController extends Controller
 
         return [
             'item_count' => Item::query()->count(),
-            'category_count' => Category::query()->count(),
             'location_count' => StorageLocation::query()->count(),
             'total_stock' => Item::query()->sum('stock'),
             'low_stock_count' => Item::query()->lowStock()->count(),
@@ -106,7 +102,6 @@ class DashboardController extends Controller
     {
         return [
             'item_count' => 0,
-            'category_count' => 0,
             'location_count' => 0,
             'total_stock' => 0,
             'low_stock_count' => 0,
@@ -123,7 +118,7 @@ class DashboardController extends Controller
     private function lowStockItems(int $limit = 6)
     {
         return Item::query()
-            ->with(['category', 'location'])
+            ->with(['location'])
             ->lowStock()
             ->orderBy('stock')
             ->orderBy('name')
@@ -181,20 +176,6 @@ class DashboardController extends Controller
             ->latest('purchased_at')
             ->latest('id')
             ->limit($limit)
-            ->get();
-    }
-
-    /**
-     * Get the busiest categories.
-     */
-    private function categories()
-    {
-        return Category::query()
-            ->withCount('items')
-            ->withSum('items as stock_total', 'stock')
-            ->orderByDesc('items_count')
-            ->orderBy('name')
-            ->limit(6)
             ->get();
     }
 
@@ -278,7 +259,7 @@ class DashboardController extends Controller
      */
     private function inventoryTablesExist(): bool
     {
-        foreach (['categories', 'storage_locations', 'items', 'stock_movements', 'item_requests', 'purchases'] as $table) {
+        foreach (['storage_locations', 'items', 'stock_movements', 'item_requests', 'purchases'] as $table) {
             if (! Schema::hasTable($table)) {
                 return false;
             }

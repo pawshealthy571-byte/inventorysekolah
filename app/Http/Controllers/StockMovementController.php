@@ -18,7 +18,7 @@ class StockMovementController extends Controller
     public function create(Request $request): View
     {
         $items = Item::query()
-            ->with(['category', 'location'])
+            ->with(['location'])
             ->orderBy('name')
             ->get();
 

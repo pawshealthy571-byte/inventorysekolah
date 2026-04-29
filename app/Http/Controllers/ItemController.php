@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Item;
 use App\Models\RolePermission;
 use App\Models\StorageLocation;
@@ -20,25 +19,23 @@ class ItemController extends Controller
      */
     public function index(Request $request): View
     {
-        $filters = $request->only(['q', 'category', 'location', 'status']);
+        $filters = $request->only(['q', 'location', 'status']);
 
         $items = Item::query()
-            ->with(['category', 'location'])
+            ->with(['location'])
             ->withCount([
                 'itemRequests as pending_requests_count' => fn ($query) => $query->where('status', 'menunggu'),
             ])
             ->when($filters['q'] ?? null, fn ($query, $term) => $query->search($term))
-            ->when($filters['category'] ?? null, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
             ->when($filters['location'] ?? null, fn ($query, $locationId) => $query->where('storage_location_id', $locationId))
             ->when(($filters['status'] ?? null) === 'menipis', fn ($query) => $query->lowStock())
             ->when(($filters['status'] ?? null) === 'aman', fn ($query) => $query->whereColumn('stock', '>', 'minimum_stock'))
             ->orderBy('name')
             ->get();
 
-        $categories = Category::query()->orderBy('name')->get();
         $locations = StorageLocation::query()->orderBy('name')->get();
 
-        return view('items.index', compact('items', 'categories', 'locations', 'filters'));
+        return view('items.index', compact('items', 'locations', 'filters'));
     }
 
     /**
@@ -46,11 +43,9 @@ class ItemController extends Controller
      */
     public function create(): View
     {
-        $categories = Category::query()->orderBy('name')->get();
         $locations = StorageLocation::query()->orderBy('name')->get();
 
         return view('items.create', [
-            'categories' => $categories,
             'locations' => $locations,
             'canUseAssistant' => auth()->user()?->hasPermission(RolePermission::PERMISSION_ASSISTANT_USE) ?? false,
         ]);
@@ -78,7 +73,7 @@ class ItemController extends Controller
      */
     public function show(Item $barang): View
     {
-        $barang->load(['category', 'location']);
+        $barang->load(['location']);
 
         $movements = $barang->stockMovements()
             ->latest('moved_at')
@@ -111,12 +106,10 @@ class ItemController extends Controller
      */
     public function edit(Item $barang): View
     {
-        $categories = Category::query()->orderBy('name')->get();
         $locations = StorageLocation::query()->orderBy('name')->get();
 
         return view('items.edit', [
             'item' => $barang,
-            'categories' => $categories,
             'locations' => $locations,
         ]);
     }
@@ -129,7 +122,6 @@ class ItemController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['required', 'string', 'max:100', Rule::unique('items', 'sku')->ignore($barang->id)],
-            'category_id' => ['nullable', 'exists:categories,id'],
             'storage_location_id' => ['nullable', 'exists:storage_locations,id'],
             'unit' => ['required', 'string', 'max:50'],
             'minimum_stock' => ['required', 'integer', 'min:0'],

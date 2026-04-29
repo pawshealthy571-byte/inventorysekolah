@@ -38,7 +38,7 @@ class ItemRequestController extends Controller
     public function create(): View
     {
         $items = Item::query()
-            ->with(['category', 'location'])
+            ->with(['location'])
             ->orderBy('name')
             ->get();
 

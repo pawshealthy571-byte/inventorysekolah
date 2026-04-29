@@ -24,7 +24,7 @@ class PurchaseController extends Controller
             ->get();
 
         $restockRecommendations = Item::query()
-            ->with(['category', 'location'])
+            ->with(['location'])
             ->get()
             ->map(fn (Item $item): array => [
                 'item' => $item,
@@ -46,7 +46,7 @@ class PurchaseController extends Controller
     public function create(): View
     {
         $items = Item::query()
-            ->with(['category', 'location'])
+            ->with(['location'])
             ->orderBy('name')
             ->get();
 

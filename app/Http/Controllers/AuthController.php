@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,6 +36,14 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'login',
+            'description' => 'User logged in',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
         return redirect()
             ->intended(route($request->user()->accessibleHomeRoute()))
@@ -70,6 +79,14 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'register',
+            'description' => 'User registered and logged in',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return redirect()
             ->route($user->accessibleHomeRoute())
             ->with('status', 'Akun berhasil dibuat.');
@@ -80,6 +97,14 @@ class AuthController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'logout',
+            'description' => 'User logged out',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

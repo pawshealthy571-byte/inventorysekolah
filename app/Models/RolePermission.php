@@ -26,6 +26,7 @@ class RolePermission extends Model
     public const PERMISSION_ACCOUNTS_MANAGE = 'accounts.manage';
 
     public const PERMISSION_ACCESS_MANAGE = 'access.manage';
+    public const PERMISSION_ACTIVITY_LOGS_VIEW = 'activity-logs.view';
 
     /**
      * The attributes that are mass assignable.
@@ -86,6 +87,10 @@ class RolePermission extends Model
                 'label' => 'Akses Management',
                 'description' => 'Mengatur hak akses setiap role.',
             ],
+            self::PERMISSION_ACTIVITY_LOGS_VIEW => [
+                'label' => 'Log Aktivitas',
+                'description' => 'Melihat riwayat aktivitas pengguna dan sistem.',
+            ],
         ];
     }
 
@@ -116,11 +121,12 @@ class RolePermission extends Model
         return [
             User::ROLE_USER => $basicPermissions,
             User::ROLE_GURU => $basicPermissions,
+            User::ROLE_SUPERADMIN => array_keys(self::definitions()),
             User::ROLE_ADMIN => [
                 ...$operationalPermissions,
                 self::PERMISSION_ACCOUNTS_MANAGE,
+                self::PERMISSION_ACTIVITY_LOGS_VIEW,
             ],
-            User::ROLE_SUPERADMIN => array_keys(self::definitions()),
         ];
     }
 

@@ -3,7 +3,7 @@
 @section('title', 'Tambah Barang')
 @section('eyebrow', 'Input Inventaris')
 @section('page_title', 'Tambah Barang Baru')
-@section('page_subtitle', 'Masukkan data barang, lokasi, kategori, dan stok awal agar inventaris langsung bisa dipantau dari dashboard.')
+@section('page_subtitle', 'Masukkan data barang, lokasi, dan stok awal agar inventaris langsung bisa dipantau dari dashboard.')
 
 @section('page_actions')
     <a class="button-secondary" href="{{ route('barang.index') }}">Lihat Daftar</a>
@@ -27,7 +27,7 @@
                     </p>
                     <div class="assistant-example">
                         Contoh:
-                        <code>Tambah barang Spidol Whiteboard kategori ATK lokasi Gudang Utama satuan pcs minimum stok lima stok baik dua puluh deskripsi untuk kelas</code>
+                        <code>Tambah barang Spidol Whiteboard lokasi Gudang Utama satuan pcs minimum stok lima stok baik dua puluh deskripsi untuk kelas</code>
                     </div>
                     <div class="assistant-chip-row">
                         <span class="assistant-chip">Voice input</span>
@@ -39,7 +39,7 @@
                 <div class="assistant-shell" data-ai-item-assistant>
                     <div class="assistant-log" data-assistant-log>
                         <div class="assistant-bubble assistant-bubble-assistant">
-                            Halo, sebutkan data barang seperti nama, SKU, kategori, lokasi, satuan, minimum stok, dan stok awal.
+                            Halo, sebutkan data barang seperti nama, SKU, lokasi, satuan, minimum stok, dan stok awal.
                         </div>
                     </div>
 
@@ -50,7 +50,7 @@
                             id="assistant-message"
                             data-assistant-input
                             rows="4"
-                            placeholder="Contoh: tambah barang Kertas HVS kategori ATK lokasi Gudang Utama satuan rim minimum stok lima stok baik sepuluh stok kurang baik dua"
+                            placeholder="Contoh: tambah barang Kertas HVS lokasi Gudang Utama satuan rim minimum stok lima stok baik sepuluh stok kurang baik dua"
                         ></textarea>
                     </label>
 
