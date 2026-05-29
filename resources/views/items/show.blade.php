@@ -56,6 +56,16 @@
                     <div>{{ $item->name }}</div>
                 </div>
                 <div class="detail-row">
+                    <strong>Foto Barang</strong>
+                    <div>
+                        @if ($item->image)
+                            <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}" style="max-height: 200px; border-radius: 8px; object-fit: cover; display: block;">
+                        @else
+                            <span class="muted">Tidak ada foto</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="detail-row">
                     <strong>SKU</strong>
                     <div>{{ $item->sku }}</div>
                 </div>
@@ -85,6 +95,10 @@
                     <div>
                         <span class="badge badge-danger">{{ number_format($item->stock_damaged, 0, ',', '.') }} {{ $item->unit }}</span>
                     </div>
+                </div>
+                <div class="detail-row">
+                    <strong>Deskripsi Kondisi</strong>
+                    <div>{{ $item->condition_description ?: 'Tidak ada deskripsi kondisi.' }}</div>
                 </div>
                 <div class="detail-row">
                     <strong>Deskripsi</strong>

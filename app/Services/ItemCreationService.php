@@ -27,7 +27,9 @@ class ItemCreationService
             'initial_stock_good' => ['required', 'integer', 'min:0'],
             'initial_stock_less_good' => ['required', 'integer', 'min:0'],
             'initial_stock_damaged' => ['required', 'integer', 'min:0'],
+            'condition_description' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'max:2048'],
         ])->validate();
     }
 
@@ -58,7 +60,9 @@ class ItemCreationService
                 ->sortDesc()
                 ->keys()
                 ->first() ?? 'baik',
+            'condition_description' => $validated['condition_description'] ?? null,
             'description' => $validated['description'] ?? null,
+            'image' => $validated['image_path'] ?? null,
         ]);
 
         foreach ($initialStocks as $condition => $quantity) {

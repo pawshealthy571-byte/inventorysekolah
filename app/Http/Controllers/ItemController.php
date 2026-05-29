@@ -9,6 +9,7 @@ use App\Services\ItemCreationService;
 use App\Services\StockMovementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -61,6 +62,11 @@ class ItemController extends Controller
     ): RedirectResponse
     {
         $validated = $itemCreationService->validate($request->all());
+        
+        if ($request->hasFile('image')) {
+            $validated['image_path'] = $request->file('image')->store('items', 'public');
+        }
+
         $item = $itemCreationService->create($validated, $stockMovementService);
 
         return redirect()
@@ -125,8 +131,17 @@ class ItemController extends Controller
             'storage_location_id' => ['nullable', 'exists:storage_locations,id'],
             'unit' => ['required', 'string', 'max:50'],
             'minimum_stock' => ['required', 'integer', 'min:0'],
+            'condition_description' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'max:2048'],
         ]);
+
+        if ($request->hasFile('image')) {
+            if ($barang->image) {
+                Storage::disk('public')->delete($barang->image);
+            }
+            $validated['image'] = $request->file('image')->store('items', 'public');
+        }
 
         $validated['condition_status'] = $barang->dominantConditionStatus();
         $barang->update($validated);
@@ -141,6 +156,10 @@ class ItemController extends Controller
      */
     public function destroy(Item $barang): RedirectResponse
     {
+        if ($barang->image) {
+            Storage::disk('public')->delete($barang->image);
+        }
+        
         $barang->delete();
 
         return redirect()

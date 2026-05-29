@@ -6,9 +6,9 @@
 @section('page_subtitle', 'Pantau riwayat perubahan dan aktivitas pengguna dalam sistem.')
 
 @section('content')
-<div class="card">
-    <div class="card-header" style="flex-direction: column; align-items: stretch; gap: 1.5rem; padding: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+<div class="card activity-log-card">
+    <div class="card-header activity-log-header">
+        <div class="activity-log-title-row">
             <h2 class="card-title" style="margin: 0;">Riwayat Aktivitas</h2>
             <div class="tabs">
                 <a href="{{ route('activity-logs.index', ['type' => 'all'] + request()->except(['type', 'page'])) }}" class="tab-item {{ $type === 'all' ? 'active' : '' }}">
@@ -22,10 +22,10 @@
         
         <form action="{{ route('activity-logs.index') }}" method="GET" class="filter-row">
             <input type="hidden" name="type" value="{{ $type }}">
-            <div class="filter-group" style="flex: 1; min-width: 200px;">
+            <div class="filter-group activity-search">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari pesan, aksi, atau nama pengguna..." class="input" style="width: 100%;">
             </div>
-            <div class="filter-group" style="width: 180px;">
+            <div class="filter-group activity-action-filter">
                 <select name="action" class="input" style="width: 100%;">
                     <option value="">Semua Aksi</option>
                     <option value="created" @selected(request('action') === 'created')>Dibuat (Created)</option>
@@ -42,8 +42,8 @@
         </form>
     </div>
     
-    <div class="table-container">
-        <table class="table">
+    <div class="table-container activity-log-table-wrap">
+        <table class="table activity-log-table">
             <thead>
                 <tr>
                     <th>Waktu</th>
@@ -57,13 +57,13 @@
             <tbody>
                 @forelse($logs as $log)
                 <tr>
-                    <td>
+                    <td data-label="Waktu">
                         <div class="text-sm">
                             <div>{{ $log->created_at->translatedFormat('d M Y') }}</div>
                             <div class="text-muted">{{ $log->created_at->format('H:i:s') }}</div>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Pengguna">
                         @if($log->user)
                             <div class="user-info">
                                 <strong>{{ $log->user->name }}</strong>
@@ -73,7 +73,7 @@
                             <span class="text-muted">Sistem</span>
                         @endif
                     </td>
-                    <td>
+                    <td data-label="Aksi">
                         @php
                             $actionClass = match($log->action) {
                                 'created' => 'badge-success',
@@ -94,17 +94,17 @@
                         @endphp
                         <span class="badge {{ $actionClass }}">{{ $actionLabel }}</span>
                     </td>
-                    <td>
+                    <td data-label="Model">
                         @if($log->model_type)
                             <span class="text-sm">{{ class_basename($log->model_type) }} #{{ $log->model_id }}</span>
                         @else
                             <span class="text-muted">-</span>
                         @endif
                     </td>
-                    <td>
-                        <span class="text-sm" style="font-weight: 600;">{{ $log->description }}</span>
+                    <td data-label="Deskripsi">
+                        <span class="text-sm activity-description">{{ $log->description }}</span>
                         @if($log->action === 'updated' && isset($log->properties['attributes']) && isset($log->properties['original']))
-                            <div class="changes-list" style="margin-top: 10px; display: grid; gap: 4px;">
+                            <div class="changes-list">
                                 @php
                                     $attributes = $log->properties['attributes'];
                                     $original = $log->properties['original'];
@@ -117,9 +117,9 @@
                                         if ($value == $oldValue || in_array($key, ['updated_at', 'created_at', 'id'])) continue;
                                         $hasChanges = true;
                                     @endphp
-                                    <div class="change-item" style="font-size: 0.7rem; background: rgba(0,0,0,0.02); padding: 4px 8px; border-radius: 4px; border-left: 3px solid var(--accent-color, #f97316);">
+                                    <div class="change-item">
                                         <span class="text-muted" style="text-transform: uppercase; font-weight: 700; font-size: 0.6rem;">{{ str_replace('_', ' ', $key) }}</span>
-                                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                                        <div class="change-values">
                                             <span style="text-decoration: line-through; color: #ef4444; opacity: 0.7;">{{ is_array($oldValue) ? json_encode($oldValue) : ($oldValue ?? 'null') }}</span>
                                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 10px; height: 10px; opacity: 0.5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
                                             <span style="color: #16a34a; font-weight: 600;">{{ is_array($value) ? json_encode($value) : ($value ?? 'null') }}</span>
@@ -132,7 +132,7 @@
                             </div>
                         @endif
                     </td>
-                    <td>
+                    <td data-label="Alamat IP">
                         <span class="text-xs font-mono">{{ $log->ip_address }}</span>
                     </td>
                 </tr>
@@ -197,6 +197,69 @@
     .text-sm { font-size: 0.875rem; }
     .text-muted { color: #6b7280; }
     .font-mono { font-family: monospace; }
+
+    .activity-log-card {
+        overflow: hidden;
+    }
+
+    .activity-log-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    .activity-log-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .activity-search {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .activity-action-filter {
+        width: 180px;
+    }
+
+    .activity-description {
+        display: inline-block;
+        max-width: 42ch;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .changes-list {
+        margin-top: 10px;
+        display: grid;
+        gap: 4px;
+    }
+
+    .change-item {
+        font-size: 0.7rem;
+        background: rgba(0,0,0,0.02);
+        padding: 4px 8px;
+        border-radius: 4px;
+        border-left: 3px solid var(--accent-color, #f97316);
+        min-width: 0;
+    }
+
+    .change-values {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+        min-width: 0;
+    }
+
+    .change-values span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
 
     /* Tabs & Filters */
     .tabs {
@@ -294,6 +357,117 @@
     }
 
     @media (max-width: 640px) {
+        .activity-log-header {
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .activity-log-title-row {
+            align-items: stretch;
+        }
+
+        .activity-log-title-row,
+        .filter-row,
+        .activity-search,
+        .activity-action-filter,
+        .tabs {
+            width: 100%;
+        }
+
+        .tabs {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-item {
+            flex: 1 0 max-content;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .filter-row {
+            align-items: stretch;
+        }
+
+        .filter-row .button-row {
+            width: 100%;
+        }
+
+        .filter-row .button,
+        .filter-row .button-secondary {
+            flex: 1 1 130px;
+        }
+
+        .activity-log-table-wrap {
+            overflow: visible;
+        }
+
+        .activity-log-table,
+        .activity-log-table tbody,
+        .activity-log-table tr,
+        .activity-log-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .activity-log-table thead {
+            display: none;
+        }
+
+        .activity-log-table {
+            min-width: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .activity-log-table tbody {
+            display: grid;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-base, #f8f9fa);
+        }
+
+        .activity-log-table tr {
+            padding: 12px;
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        .activity-log-table td {
+            padding: 0;
+            border-bottom: 0;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .activity-log-table td + td {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(15, 23, 42, 0.06);
+        }
+
+        .activity-log-table td::before {
+            content: attr(data-label);
+            display: block;
+            margin-bottom: 4px;
+            color: #6b7280;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .activity-description {
+            max-width: none;
+        }
+
+        .change-values {
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
         nav[role="navigation"] .hidden {
             display: none !important;
         }

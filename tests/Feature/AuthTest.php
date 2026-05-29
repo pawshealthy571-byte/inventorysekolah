@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ActivityLog;
 use App\Models\User;
 use Database\Seeders\SuperAdminSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -109,5 +110,36 @@ class AuthTest extends TestCase
         $user->refresh();
 
         $this->assertTrue(Hash::check('passwordBaru456', $user->password));
+    }
+
+    public function test_user_activity_logs_do_not_store_password_fields(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'password123',
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->put(route('profile.password.update'), [
+                'current_password' => 'password123',
+                'password' => 'passwordBaru456',
+                'password_confirmation' => 'passwordBaru456',
+            ])
+            ->assertRedirect(route('profile.show'));
+
+        $log = ActivityLog::query()
+            ->where('model_type', User::class)
+            ->where('model_id', $user->id)
+            ->where('action', 'updated')
+            ->latest('id')
+            ->firstOrFail();
+
+        $attributes = $log->properties['attributes'] ?? [];
+        $original = $log->properties['original'] ?? [];
+
+        $this->assertArrayNotHasKey('password', $attributes);
+        $this->assertArrayNotHasKey('password', $original);
+        $this->assertArrayNotHasKey('remember_token', $attributes);
+        $this->assertArrayNotHasKey('remember_token', $original);
     }
 }

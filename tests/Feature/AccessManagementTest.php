@@ -17,7 +17,7 @@ class AccessManagementTest extends TestCase
 
         $response = $this
             ->actingAs($admin)
-            ->post(route('profile.accounts.store'), [
+            ->post(route('settings.accounts.store'), [
                 'name' => 'Petugas Gudang',
                 'email' => 'petugas@example.com',
                 'role' => User::ROLE_USER,
@@ -25,7 +25,7 @@ class AccessManagementTest extends TestCase
                 'password_confirmation' => 'password123',
             ]);
 
-        $response->assertRedirect(route('profile.accounts.show'));
+        $response->assertRedirect(route('settings.accounts'));
         $response->assertSessionHas('status', 'Akun baru berhasil dibuat.');
 
         $this->assertDatabaseHas('users', [
@@ -39,9 +39,9 @@ class AccessManagementTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $accountResponse = $this
-            ->from(route('profile.accounts.show'))
+            ->from(route('settings.accounts'))
             ->actingAs($admin)
-            ->post(route('profile.accounts.store'), [
+            ->post(route('settings.accounts.store'), [
                 'name' => 'Calon Superadmin',
                 'email' => 'superbaru@example.com',
                 'role' => User::ROLE_SUPERADMIN,
@@ -49,7 +49,7 @@ class AccessManagementTest extends TestCase
                 'password_confirmation' => 'password123',
             ]);
 
-        $accountResponse->assertRedirect(route('profile.accounts.show'));
+        $accountResponse->assertRedirect(route('settings.accounts'));
         $accountResponse->assertSessionHasErrors('role');
 
         $this->assertDatabaseMissing('users', [
@@ -58,7 +58,7 @@ class AccessManagementTest extends TestCase
 
         $accessResponse = $this
             ->actingAs($admin)
-            ->put(route('profile.access.update'), [
+            ->put(route('settings.access.update'), [
                 'permissions' => [],
             ]);
 
@@ -71,7 +71,7 @@ class AccessManagementTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->post(route('profile.accounts.store'), [
+            ->post(route('settings.accounts.store'), [
                 'name' => 'Tidak Boleh',
                 'email' => 'forbidden@example.com',
                 'role' => User::ROLE_USER,
@@ -98,13 +98,13 @@ class AccessManagementTest extends TestCase
 
         $response = $this
             ->actingAs($admin)
-            ->get(route('profile.accounts.show', [
+            ->get(route('settings.accounts', [
                 'q' => 'Guru',
                 'role' => User::ROLE_USER,
             ]));
 
         $response->assertOk()
-            ->assertSee('Tabel Akun')
+            ->assertSee('Daftar Akun Terdaftar')
             ->assertSee('Guru Matematika')
             ->assertDontSee('Petugas TU');
     }
@@ -112,31 +112,36 @@ class AccessManagementTest extends TestCase
     public function test_superadmin_can_change_role_access_and_restricted_route_becomes_forbidden(): void
     {
         $superadmin = User::factory()->superAdmin()->create();
-        $user = User::factory()->create();
+        $admin = User::factory()->admin()->create();
 
         $defaultMatrix = RolePermission::defaultMatrix();
         $userPermissions = array_values(array_diff(
             $defaultMatrix[User::ROLE_USER],
+            []
+        ));
+        $managedAdminPermissions = array_values(array_diff(
+            $defaultMatrix[User::ROLE_ADMIN],
             [RolePermission::PERMISSION_ITEMS_MANAGE],
         ));
 
         $response = $this
             ->actingAs($superadmin)
-            ->put(route('profile.access.update'), [
+            ->put(route('settings.access.update'), [
                 'permissions' => [
                     User::ROLE_USER => $userPermissions,
-                    User::ROLE_ADMIN => $defaultMatrix[User::ROLE_ADMIN],
+                    User::ROLE_GURU => $defaultMatrix[User::ROLE_GURU],
+                    User::ROLE_ADMIN => $managedAdminPermissions,
                 ],
             ]);
 
-        $response->assertRedirect(route('profile.access.show'));
+        $response->assertRedirect(route('settings.access'));
         $response->assertSessionHas('status', 'Hak akses role berhasil diperbarui.');
 
-        $this->actingAs($user)
+        $this->actingAs($admin)
             ->get(route('barang.index'))
             ->assertOk();
 
-        $this->actingAs($user)
+        $this->actingAs($admin)
             ->get(route('barang.create'))
             ->assertForbidden();
     }
@@ -144,28 +149,29 @@ class AccessManagementTest extends TestCase
     public function test_create_item_page_hides_assistant_when_role_cannot_use_it(): void
     {
         $superadmin = User::factory()->superAdmin()->create();
-        $user = User::factory()->create();
+        $admin = User::factory()->admin()->create();
 
         $defaultMatrix = RolePermission::defaultMatrix();
-        $userPermissions = array_values(array_diff(
-            $defaultMatrix[User::ROLE_USER],
+        $adminPermissions = array_values(array_diff(
+            $defaultMatrix[User::ROLE_ADMIN],
             [RolePermission::PERMISSION_ASSISTANT_USE],
         ));
 
         $this->actingAs($superadmin)
-            ->put(route('profile.access.update'), [
+            ->put(route('settings.access.update'), [
                 'permissions' => [
-                    User::ROLE_USER => $userPermissions,
-                    User::ROLE_ADMIN => $defaultMatrix[User::ROLE_ADMIN],
+                    User::ROLE_USER => $defaultMatrix[User::ROLE_USER],
+                    User::ROLE_GURU => $defaultMatrix[User::ROLE_GURU],
+                    User::ROLE_ADMIN => $adminPermissions,
                 ],
             ])
-            ->assertRedirect(route('profile.access.show'));
+            ->assertRedirect(route('settings.access'));
 
-        $this->actingAs($user)
+        $this->actingAs($admin)
             ->get(route('barang.create'))
             ->assertOk()
             ->assertDontSee('Tambah Barang Dengan Chat atau Suara')
-            ->assertSee('AI assistant belum aktif untuk akun ini.')
+            ->assertDontSee('Gemini Assistant')
             ->assertSee('Data Inventaris Baru');
     }
 }

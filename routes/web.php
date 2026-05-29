@@ -11,13 +11,25 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('lang/{locale}', [LanguageController::class, 'switch'])->name('lang.switch');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthController::class, 'createLogin'])->name('login');
     Route::post('login', [AuthController::class, 'storeLogin'])->name('login.store');
     Route::get('register', [AuthController::class, 'createRegister'])->name('register');
     Route::post('register', [AuthController::class, 'storeRegister'])->name('register.store');
+
+    Route::get('forgot-password', [\App\Http\Controllers\PasswordResetController::class, 'create'])
+        ->name('password.request');
+    Route::post('forgot-password', [\App\Http\Controllers\PasswordResetController::class, 'store'])
+        ->name('password.email');
+    Route::get('reset-password/{token}', [\App\Http\Controllers\PasswordResetController::class, 'edit'])
+        ->name('password.reset');
+    Route::post('reset-password', [\App\Http\Controllers\PasswordResetController::class, 'update'])
+        ->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {

@@ -32,7 +32,7 @@
                 <input id="remember" name="remember" type="checkbox" value="1" {{ old('remember') ? 'checked' : '' }}>
                 <span>Ingat saya di perangkat ini</span>
             </label>
-            <span class="auth-helper-text">Akses cepat ke ringkasan stok dan mutasi.</span>
+            <a href="{{ route('password.request') }}" class="auth-helper-link">Lupa Password?</a>
         </div>
 
         <div class="auth-actions">

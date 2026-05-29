@@ -43,6 +43,7 @@
                     </div>
                     <div style="flex: 1; min-width: 250px;">
                         <input type="file" name="app_logo" id="app_logo" class="auth-input">
+                        <p id="logo-warning" style="color: #ef4444; display: none; margin-top: 4px; font-size: 0.85rem; font-weight: 600;">⚠️ Ukuran file terlalu besar! Maksimal 2MB.</p>
                         <p class="auth-helper-text" style="margin-top: 8px;">Format: PNG, JPG, JPEG. Ukuran maks: 2MB. Disarankan gambar dengan latar belakang transparan.</p>
                     </div>
                 </div>
@@ -55,3 +56,20 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.getElementById('app_logo').addEventListener('change', function() {
+        const file = this.files[0];
+        const warning = document.getElementById('logo-warning');
+        if (file && file.size > 2 * 1024 * 1024) {
+            warning.style.display = 'block';
+            alert('Peringatan: Ukuran logo yang Anda pilih (' + (file.size / (1024 * 1024)).toFixed(2) + ' MB) melebihi batas maksimal 2MB. Silakan pilih file yang lebih kecil.');
+            this.value = ''; // Reset the input
+            warning.style.display = 'none';
+        } else {
+            warning.style.display = 'none';
+        }
+    });
+</script>
+@endpush

@@ -22,7 +22,7 @@
             </span>
         </div>
 
-        <form method="POST" action="{{ route('barang.update', $item) }}">
+        <form method="POST" action="{{ route('barang.update', $item) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 

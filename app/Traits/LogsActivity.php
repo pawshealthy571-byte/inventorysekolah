@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Models\ActivityLog;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 
 trait LogsActivity
@@ -33,12 +34,39 @@ trait LogsActivity
             'model_id' => $this->id,
             'description' => $description,
             'properties' => [
-                'attributes' => $this->getAttributes(),
-                'original' => $this->getOriginal(),
+                'attributes' => $this->sanitizeActivityAttributes($this->getAttributes()),
+                'original' => $this->sanitizeActivityAttributes($this->getOriginal()),
             ],
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
         ]);
+    }
+
+    /**
+     * Remove sensitive attributes before persisting activity snapshots.
+     *
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    protected function sanitizeActivityAttributes(array $attributes): array
+    {
+        return Arr::except($attributes, $this->activityLogExcludedAttributes());
+    }
+
+    /**
+     * Determine which attributes should never be stored in activity logs.
+     *
+     * @return array<int, string>
+     */
+    protected function activityLogExcludedAttributes(): array
+    {
+        $hidden = method_exists($this, 'getHidden') ? $this->getHidden() : [];
+
+        return array_values(array_unique([
+            ...$hidden,
+            'password',
+            'remember_token',
+        ]));
     }
 
     protected function getActivityDescription($action)

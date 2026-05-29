@@ -101,8 +101,8 @@
                     <tbody>
                         @foreach ($items as $item)
                             <tr>
-                                <td>
-                                    <strong>{{ $item->name }}</strong>
+                                <td style="max-width: 300px;">
+                                    <strong class="text-truncate" style="display: block;" title="{{ $item->name }}">{{ $item->name }}</strong>
                                     <div class="meta">
                                         <span>SKU {{ $item->sku }}</span>
                                         <span>{{ $item->unit }}</span>

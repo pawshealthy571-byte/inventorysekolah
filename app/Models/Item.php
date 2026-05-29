@@ -29,7 +29,9 @@ class Item extends Model
         'stock_damaged',
         'minimum_stock',
         'condition_status',
+        'condition_description',
         'description',
+        'image',
     ];
 
     /**

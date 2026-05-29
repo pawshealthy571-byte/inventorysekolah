@@ -77,7 +77,40 @@
     @endif
 
     <div class="field-wide">
+        <label for="condition_description">Deskripsi Kondisi</label>
+        <textarea class="textarea" id="condition_description" name="condition_description" placeholder="Contoh: Kenapa rusak atau kurang baik?">{{ old('condition_description', $item->condition_description ?? '') }}</textarea>
+    </div>
+
+    <div class="field-wide">
         <label for="description">Deskripsi</label>
         <textarea class="textarea" id="description" name="description">{{ old('description', $item->description ?? '') }}</textarea>
     </div>
+
+    <div class="field-wide">
+        <label for="image">Foto Barang</label>
+        <input class="input" type="file" id="image" name="image" accept="image/*">
+        <small id="image-warning" style="color: #ef4444; display: none; margin-top: 4px; font-weight: 600;">⚠️ Ukuran file terlalu besar! Maksimal 2MB.</small>
+        @if($editing && $item->image)
+            <div style="margin-top: 10px;">
+                <img src="{{ Storage::url($item->image) }}" alt="Foto Barang" style="max-height: 150px; border-radius: 8px; object-fit: cover;">
+            </div>
+        @endif
+    </div>
 </div>
+
+@push('scripts')
+<script>
+    document.getElementById('image').addEventListener('change', function() {
+        const file = this.files[0];
+        const warning = document.getElementById('image-warning');
+        if (file && file.size > 2 * 1024 * 1024) {
+            warning.style.display = 'block';
+            alert('Peringatan: Ukuran file yang Anda pilih (' + (file.size / (1024 * 1024)).toFixed(2) + ' MB) melebihi batas maksimal 2MB. Silakan pilih file yang lebih kecil atau kompres terlebih dahulu.');
+            this.value = ''; // Reset the input
+            warning.style.display = 'none';
+        } else {
+            warning.style.display = 'none';
+        }
+    });
+</script>
+@endpush

@@ -18,7 +18,7 @@ class ExampleTest extends TestCase
     public function test_the_dashboard_renders_inventory_information(): void
     {
         $this->seed(InventorySeeder::class);
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $response = $this->actingAs($user)->get('/');
 
@@ -32,7 +32,7 @@ class ExampleTest extends TestCase
     public function test_the_operational_page_renders_inventory_details(): void
     {
         $this->seed(InventorySeeder::class);
-        $user = User::factory()->create();
+        $user = User::factory()->admin()->create();
 
         $response = $this->actingAs($user)->get(route('dashboard.operational'));
 

@@ -334,6 +334,12 @@
                 return;
             }
 
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Peringatan: Ukuran foto yang Anda pilih (' + (file.size / (1024 * 1024)).toFixed(2) + ' MB) melebihi batas maksimal 2MB. Silakan pilih file yang lebih kecil.');
+                input.value = ''; // Reset input
+                return;
+            }
+
             revokeObjectUrl();
             state.activeFile = file;
             state.objectUrl = URL.createObjectURL(file);

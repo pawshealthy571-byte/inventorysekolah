@@ -633,19 +633,23 @@ code {
 
 .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
 }
 
 .field {
     display: grid;
     gap: 6px;
+    min-width: 0;
+    align-content: start;
 }
 
 .field-wide {
     grid-column: 1 / -1;
     display: grid;
     gap: 6px;
+    min-width: 0;
+    align-content: start;
 }
 
 .field label {
@@ -661,6 +665,8 @@ code {
 .input,
 .select,
 .textarea {
+    width: 100%;
+    min-width: 0;
     background: #ffffff;
     border: 1px solid rgba(39, 39, 42, 0.15);
     color: var(--ink);
@@ -1575,6 +1581,28 @@ Option {
     .grid-4,
     .grid-2 {
         grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .section-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .button-row,
+    .inline-actions,
+    .topbar-actions {
+        width: 100%;
+    }
+
+    .button-row .button,
+    .button-row .button-secondary,
+    .button-row .button-danger,
+    .button-row .button-ghost {
+        flex: 1 1 140px;
     }
 
     .filter-form {

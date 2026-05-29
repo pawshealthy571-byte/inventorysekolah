@@ -11,6 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(\App\Http\Middleware\SetLocale::class);
+        $middleware->append(\App\Http\Middleware\SanitizeInput::class);
         $middleware->alias([
             'permission' => \App\Http\Middleware\EnsureUserHasPermission::class,
         ]);

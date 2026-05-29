@@ -31,6 +31,10 @@
                     <input type="radio" name="filter" value="tahun" {{ $filterType == 'tahun' ? 'checked' : '' }} onchange="this.form.submit()">
                     <span>Tahunan</span>
                 </label>
+                <label class="tab-item">
+                    <input type="radio" name="filter" value="rentang" {{ $filterType == 'rentang' ? 'checked' : '' }} onchange="this.form.submit()">
+                    <span>Rentang Kustom</span>
+                </label>
             </div>
 
             <div class="filter-inputs" style="margin-top: 15px; display: flex; gap: 10px; align-items: flex-end;">
@@ -58,7 +62,7 @@
                             @endforeach
                         </select>
                     </div>
-                @else
+                @elseif($filterType == 'tahun')
                     <div class="field">
                         <label>Pilih Tahun</label>
                         <select name="year" class="select">
@@ -66,6 +70,15 @@
                                 <option value="{{ $y }}" {{ $filterYear == $y ? 'selected' : '' }}>{{ $y }}</option>
                             @endforeach
                         </select>
+                    </div>
+                @else
+                    <div class="field">
+                        <label>Tanggal Mulai</label>
+                        <input type="date" name="start_date" class="input" value="{{ $filterStartDate ?? date('Y-m-01') }}">
+                    </div>
+                    <div class="field">
+                        <label>Tanggal Akhir</label>
+                        <input type="date" name="end_date" class="input" value="{{ $filterEndDate ?? date('Y-m-t') }}">
                     </div>
                 @endif
                 <button type="submit" class="button">Tampilkan</button>
@@ -102,6 +115,17 @@
             PDF / Print
         </a>
     </div>
+
+    <section class="panel section-card" style="margin-bottom: 20px;">
+        <div class="section-header">
+            <div>
+                <h3 class="section-title">Diagram Pengeluaran Tahun {{ $filterYear }}</h3>
+            </div>
+        </div>
+        <div style="height: 300px; width: 100%;">
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </section>
 
     <section class="panel section-card">
         <div class="table-wrap">
@@ -173,4 +197,46 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
     </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode($chartLabels) !!},
+                    datasets: [{
+                        label: 'Total Pengeluaran (Rp)',
+                        data: {!! json_encode($chartValues) !!},
+                        backgroundColor: '#6366f1',
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'Rp' + value.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Rp' + context.raw.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 @endsection

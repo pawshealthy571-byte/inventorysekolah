@@ -20,6 +20,8 @@ class PurchaseReportController extends Controller
         $filterDate = $request->get('date');
         $filterMonth = $request->get('month');
         $filterYear = $request->get('year', now()->year);
+        $filterStartDate = $request->get('start_date');
+        $filterEndDate = $request->get('end_date');
 
         $query = Purchase::query()->with('item');
 
@@ -44,6 +46,17 @@ class PurchaseReportController extends Controller
                 $year = $filterYear ?: now()->year;
                 $query->whereYear('purchased_at', $year);
                 $periodLabel = 'Tahun ' . $year;
+                break;
+
+            case 'rentang':
+                if ($filterStartDate && $filterEndDate) {
+                    $start = Carbon::parse($filterStartDate)->startOfDay();
+                    $end = Carbon::parse($filterEndDate)->endOfDay();
+                    $query->whereBetween('purchased_at', [$start, $end]);
+                    $periodLabel = $start->translatedFormat('d M Y') . ' - ' . $end->translatedFormat('d M Y');
+                } else {
+                    $periodLabel = 'Rentang Kustom';
+                }
                 break;
 
             default:
@@ -87,6 +100,8 @@ class PurchaseReportController extends Controller
             'filterDate' => $filterDate,
             'filterMonth' => $filterMonth ?: now()->month,
             'filterYear' => $filterYear ?: now()->year,
+            'filterStartDate' => $filterStartDate,
+            'filterEndDate' => $filterEndDate,
             'periodLabel' => $periodLabel,
             'totalCost' => $purchases->sum('total_cost'),
             'totalItems' => $purchases->sum('quantity_purchased'),
@@ -165,6 +180,8 @@ class PurchaseReportController extends Controller
         $filterDate = $request->get('date');
         $filterMonth = $request->get('month');
         $filterYear = $request->get('year', now()->year);
+        $filterStartDate = $request->get('start_date');
+        $filterEndDate = $request->get('end_date');
 
         $query = Purchase::query()->with('item');
 
@@ -175,6 +192,10 @@ class PurchaseReportController extends Controller
                   ->whereYear('purchased_at', $filterYear ?: now()->year);
         } elseif ($filterType === 'tahun') {
             $query->whereYear('purchased_at', $filterYear ?: now()->year);
+        } elseif ($filterType === 'rentang' && $filterStartDate && $filterEndDate) {
+            $start = Carbon::parse($filterStartDate)->startOfDay();
+            $end = Carbon::parse($filterEndDate)->endOfDay();
+            $query->whereBetween('purchased_at', [$start, $end]);
         }
 
         return $query->latest('purchased_at')->get();
@@ -186,6 +207,8 @@ class PurchaseReportController extends Controller
         $filterDate = $request->get('date');
         $filterMonth = $request->get('month');
         $filterYear = $request->get('year', now()->year);
+        $filterStartDate = $request->get('start_date');
+        $filterEndDate = $request->get('end_date');
 
         if ($filterType === 'hari') {
             return 'Tanggal ' . Carbon::parse($filterDate ?: now())->translatedFormat('d F Y');
@@ -193,6 +216,10 @@ class PurchaseReportController extends Controller
             return Carbon::createFromDate($filterYear ?: now()->year, $filterMonth ?: now()->month, 1)->translatedFormat('F Y');
         } elseif ($filterType === 'tahun') {
             return 'Tahun ' . ($filterYear ?: now()->year);
+        } elseif ($filterType === 'rentang' && $filterStartDate && $filterEndDate) {
+            $start = Carbon::parse($filterStartDate)->startOfDay();
+            $end = Carbon::parse($filterEndDate)->endOfDay();
+            return $start->translatedFormat('d M Y') . ' - ' . $end->translatedFormat('d M Y');
         }
         return 'Semua Periode';
     }

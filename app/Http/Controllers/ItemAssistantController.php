@@ -12,50 +12,55 @@ use Illuminate\Validation\ValidationException;
 class ItemAssistantController extends Controller
 {
     /**
-     * Parse a natural-language item command and store it.
+     * Parse a natural-language command and respond using Gemini.
      */
     public function store(
         Request $request,
-        ItemAssistantService $itemAssistantService,
-        ItemCreationService $itemCreationService,
-        StockMovementService $stockMovementService,
+        \App\Services\GeminiService $geminiService,
+        \App\Services\ItemAssistantService $itemAssistantService,
+        \App\Services\ItemCreationService $itemCreationService,
+        \App\Services\StockMovementService $stockMovementService,
     ): JsonResponse {
         $validated = $request->validate([
             'message' => ['required', 'string', 'max:3000'],
         ]);
 
-        $draft = $itemAssistantService->buildDraft($validated['message']);
+        $message = $validated['message'];
 
-        if ($draft['missing'] !== []) {
-            return response()->json([
-                'ok' => false,
-                'message' => 'Data belum bisa disimpan. Informasi yang masih kurang: ' . implode(', ', $draft['missing']) . '.',
-                'summary' => $draft['summary'],
-                'warnings' => $draft['warnings'],
-                'missing' => $draft['missing'],
-            ], 422);
+        // If it looks like a command to add an item (has keywords), try parsing it
+        $isItemCommand = preg_match('/\b(tambah|simpan|buat|input|masukkan|add|save|create)\b.*\b(barang|item|produk)\b/iu', $message);
+        
+        if ($isItemCommand) {
+            $draft = $itemAssistantService->buildDraft($message);
+
+            // If we have enough info to create an item
+            if ($draft['missing'] === []) {
+                try {
+                    $itemData = $itemCreationService->validate($draft['attributes']);
+                    $item = $itemCreationService->create($itemData, $stockMovementService);
+
+                    return response()->json([
+                        'ok' => true,
+                        'message' => "Barang {$item->name} berhasil ditambahkan ke database.",
+                        'summary' => $draft['summary'],
+                        'warnings' => $draft['warnings'],
+                        'item_id' => $item->id,
+                        'redirect_url' => route('barang.show', $item),
+                    ]);
+                } catch (ValidationException $exception) {
+                    // Fallback to general AI if validation fails
+                }
+            }
         }
 
-        try {
-            $itemData = $itemCreationService->validate($draft['attributes']);
-            $item = $itemCreationService->create($itemData, $stockMovementService);
-        } catch (ValidationException $exception) {
-            return response()->json([
-                'ok' => false,
-                'message' => 'Data hasil parsing belum valid untuk disimpan.',
-                'summary' => $draft['summary'],
-                'warnings' => $draft['warnings'],
-                'errors' => $exception->errors(),
-            ], 422);
-        }
+        // General AI response for anything else
+        $aiResponse = $geminiService->generateResponse($message);
 
         return response()->json([
             'ok' => true,
-            'message' => "Barang {$item->name} berhasil ditambahkan ke database.",
-            'summary' => $draft['summary'],
-            'warnings' => $draft['warnings'],
-            'item_id' => $item->id,
-            'redirect_url' => route('barang.show', $item),
+            'message' => $aiResponse,
+            'summary' => [],
+            'warnings' => [],
         ]);
     }
 }
