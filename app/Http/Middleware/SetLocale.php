@@ -19,6 +19,22 @@ class SetLocale
             app()->setLocale(session('locale'));
         }
 
-        return $next($request);
+        \Carbon\Carbon::setLocale(app()->getLocale());
+
+        $response = $next($request);
+
+        if (
+            app()->getLocale() === 'en'
+            && method_exists($response, 'getContent')
+            && str_contains((string) $response->headers->get('Content-Type'), 'text/html')
+        ) {
+            $phrases = trans('static');
+
+            if (is_array($phrases) && $phrases !== []) {
+                $response->setContent(strtr($response->getContent(), $phrases));
+            }
+        }
+
+        return $response;
     }
 }

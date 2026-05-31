@@ -53,7 +53,6 @@
                                 <div>
                                     <strong>{{ $entry['item']->name }}</strong>
                                     <div class="meta">
-                                        <span>Stok total {{ number_format($entry['item']->stock, 0, ',', '.') }}</span>
                                         <span>Minimum {{ number_format($entry['item']->minimum_stock, 0, ',', '.') }}</span>
                                     </div>
                                 </div>

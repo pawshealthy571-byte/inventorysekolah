@@ -46,11 +46,6 @@
 
     <section class="stats-grid" style="margin-bottom: 18px;">
         <article class="panel stat-card">
-            <span class="muted">Total stok tersedia</span>
-            <strong>{{ number_format($summary['total_stock'], 0, ',', '.') }}</strong>
-            <p>Akumulasi seluruh unit barang aktif.</p>
-        </article>
-        <article class="panel stat-card">
             <span class="muted">Data barang</span>
             <strong>{{ number_format($summary['item_count'], 0, ',', '.') }}</strong>
             <p>{{ number_format($summary['location_count'], 0, ',', '.') }} lokasi aktif di gudang.</p>

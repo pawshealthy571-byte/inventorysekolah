@@ -69,11 +69,10 @@ class PurchaseReportController extends Controller
         // Data for chart
         $chartYear = $filterYear ?: now()->year;
         $monthlyData = Purchase::query()
-            ->selectRaw('MONTH(purchased_at) as month, SUM(total_cost) as total')
             ->whereYear('purchased_at', $chartYear)
-            ->groupByRaw('MONTH(purchased_at)')
-            ->orderByRaw('MONTH(purchased_at)')
-            ->pluck('total', 'month')
+            ->get(['purchased_at', 'total_cost'])
+            ->groupBy(fn (Purchase $purchase): int => $purchase->purchased_at->month)
+            ->map(fn ($purchases): float => (float) $purchases->sum('total_cost'))
             ->toArray();
 
         $chartLabels = [];
@@ -84,10 +83,11 @@ class PurchaseReportController extends Controller
         }
 
         $availableYears = Purchase::query()
-            ->selectRaw('YEAR(purchased_at) as year')
-            ->distinct()
-            ->orderByDesc('year')
-            ->pluck('year')
+            ->latest('purchased_at')
+            ->pluck('purchased_at')
+            ->map(fn ($purchasedAt): int => Carbon::parse($purchasedAt)->year)
+            ->unique()
+            ->values()
             ->toArray();
 
         if (empty($availableYears)) {

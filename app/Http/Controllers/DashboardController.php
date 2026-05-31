@@ -78,7 +78,6 @@ class DashboardController extends Controller
         return [
             'item_count' => Item::query()->count(),
             'location_count' => StorageLocation::query()->count(),
-            'total_stock' => Item::query()->sum('stock'),
             'low_stock_count' => Item::query()->lowStock()->count(),
             'pending_request_count' => ItemRequest::query()->where('status', 'menunggu')->count(),
             'purchase_total_this_month' => (float) Purchase::query()
@@ -103,7 +102,6 @@ class DashboardController extends Controller
         return [
             'item_count' => 0,
             'location_count' => 0,
-            'total_stock' => 0,
             'low_stock_count' => 0,
             'pending_request_count' => 0,
             'purchase_total_this_month' => 0,

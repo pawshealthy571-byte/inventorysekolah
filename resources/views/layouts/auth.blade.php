@@ -1,10 +1,16 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title>@yield('title', 'Autentikasi Inventaris Sekolah')</title>
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+        
+        <!-- Styles -->
+        <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
         <link rel="stylesheet" href="{{ asset('css/dashboard-premium.css') }}">
     </head>
     <body class="auth-screen">
@@ -14,8 +20,9 @@
             $appLogo = \App\Models\Setting::getValue('app_logo');
             $logoUrl = $appLogo ? asset('storage/' . $appLogo) : asset('images/logo.png');
         @endphp
+
         <main class="auth-shell">
-            <section class="table-panel auth-card">
+            <div class="auth-card fade-in-up">
                 <div class="auth-card-head">
                     <div class="auth-card-intro">
                         <div class="auth-brand">
@@ -23,12 +30,9 @@
                             <span class="logo-subtitle">{{ $appSubtitle }}</span>
                         </div>
                         <h1 class="auth-page-title">@yield('page_title', 'Akses Inventaris')</h1>
-                        <p class="auth-page-subtitle">@yield('page_subtitle', 'Masuk atau buat akun untuk mengelola stok, lokasi penyimpanan, dan mutasi barang dalam satu dashboard.')</p>
+                        <p class="auth-page-subtitle">@yield('page_subtitle', 'Masuk untuk mengelola stok, lokasi penyimpanan, dan mutasi barang dalam satu dashboard.')</p>
                     </div>
-                    <div class="header-actions">
-
-                        @yield('header_actions')
-                    </div>
+                    @yield('header_actions')
                 </div>
 
                 <div class="auth-panel-body">
@@ -39,7 +43,7 @@
 
                     @if (session('status'))
                         <div class="auth-alert auth-alert-success">
-                            <strong>Status</strong>
+                            <strong>Berhasil</strong>
                             <div>{{ session('status') }}</div>
                         </div>
                     @endif
@@ -47,7 +51,7 @@
                     @if ($errors->any())
                         <div class="auth-alert auth-alert-danger">
                             <strong>Periksa input berikut:</strong>
-                            <ul style="margin: 10px 0 0; padding-left: 18px;">
+                            <ul style="margin: 10px 0 0; padding-left: 18px; font-size: 0.85rem;">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
@@ -57,8 +61,7 @@
 
                     @yield('content')
                 </div>
-            </section>
+            </div>
         </main>
-
     </body>
 </html>

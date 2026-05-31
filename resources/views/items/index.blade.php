@@ -63,11 +63,6 @@
             <p>Jumlah barang setelah filter diterapkan.</p>
         </article>
         <article class="panel stat-card">
-            <span class="muted">Stok total</span>
-            <strong>{{ number_format($items->sum('stock'), 0, ',', '.') }}</strong>
-            <p>Akumulasi stok dari hasil filter aktif.</p>
-        </article>
-        <article class="panel stat-card">
             <span class="muted">Stok menipis</span>
             <strong>{{ number_format($items->filter(fn ($item) => $item->isLowStock())->count(), 0, ',', '.') }}</strong>
             <p>Barang yang perlu segera ditindak lanjuti.</p>

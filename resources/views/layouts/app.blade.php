@@ -131,24 +131,6 @@
             </main>
         </div>
         @stack('scripts')
-        <script>
-            (() => {
-                const navMenu = document.querySelector('.nav-menu');
-
-                if (! navMenu) {
-                    return;
-                }
-
-                navMenu.addEventListener('wheel', (event) => {
-                    const dominantAxis = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? 'y' : 'x';
-
-                    if (dominantAxis === 'y' && navMenu.scrollWidth > navMenu.clientWidth) {
-                        navMenu.scrollLeft += event.deltaY;
-                        event.preventDefault();
-                    }
-                }, { passive: false });
-            })();
-        </script>
         
         @auth
             @if (auth()->user()->hasPermission(\App\Models\RolePermission::PERMISSION_ASSISTANT_USE))

@@ -18,7 +18,7 @@ class SuperAdminSeeder extends Seeder
             'name' => 'Super Admin',
             'role' => User::ROLE_SUPERADMIN,
             'email_verified_at' => now(),
-            'password' => 'superadmin123',
+            'password' => 'password',
         ]);
     }
 }

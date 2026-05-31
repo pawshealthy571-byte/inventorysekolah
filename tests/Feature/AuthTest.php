@@ -68,7 +68,12 @@ class AuthTest extends TestCase
             'name' => 'Operator Lama',
         ]);
 
-        $photo = UploadedFile::fake()->image('avatar.jpg', 320, 320);
+        $photo = UploadedFile::fake()
+            ->createWithContent(
+                'avatar.png',
+                base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==')
+            )
+            ->mimeType('image/png');
 
         $response = $this
             ->actingAs($user)

@@ -269,13 +269,13 @@
     @media (max-width: 480px) {
         .ai-chat-widget {
             right: 16px;
-            bottom: calc(112px + env(safe-area-inset-bottom));
+            bottom: calc(82px + env(safe-area-inset-bottom));
         }
 
         .ai-chat-window {
-            width: calc(100vw - 40px);
-            height: calc(100vh - 120px);
-            right: -10px;
+            width: calc(100vw - 32px);
+            height: calc(100vh - 160px);
+            right: -8px;
         }
     }
 </style>
